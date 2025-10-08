@@ -1,217 +1,107 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>학년별 탐구자료 - 중등 수학 개념기반탐구</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학년별 탐구자료 - 중등 수학 개념기반탐구</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #1a3a3a 0%, #0d2626 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      background: linear-gradient(135deg, #1a3a3a 0%, #0d2626 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    /* ✅ 모든 콘텐츠가 동일한 왼쪽 기준선을 공유 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;  /* 공통 좌우 여백 */
+    }
 
-        .header {
-            margin-bottom: 60px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+    .header {
+      margin-bottom: 60px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-        .back-button {
-            background: rgba(45, 212, 191, 0.2);
-            border: 2px solid #2dd4bf;
-            color: #2dd4bf;
-            padding: 12px 24px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+    .back-button {
+      background: rgba(45, 212, 191, 0.2);
+      border: 2px solid #2dd4bf;
+      color: #2dd4bf;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .back-button:hover { background: #2dd4bf; color: #0d2626; }
 
-        .back-button:hover {
-            background: #2dd4bf;
-            color: #0d2626;
-        }
+    .header-title { border-left: 5px solid #2dd4bf; padding-left: 20px; }
+    .header-title h1 { color: white; font-size: 2.5rem; font-weight: 700; }
 
-        .header-title {
-            border-left: 5px solid #2dd4bf;
-            padding-left: 20px;
-        }
+    .section { margin-bottom: 50px; }
 
-        .header-title h1 {
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
+    .section-title {
+      color: #2dd4bf;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      /* ❌ 왼쪽 패딩 제거해서 헤더와 같은 기준선 */
+      padding-left: 0;
+    }
 
-        .section {
-            margin-bottom: 50px;
-        }
+    .grade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      /* ❌ 섹션 내부도 동일 기준선 유지 */
+      padding: 0;
+    }
 
-        .section-title {
-            color: #2dd4bf;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 30px;
-            padding-left: 20px;
-        }
+    .grade-card {
+      background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-decoration: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      min-height: 180px; position: relative; overflow: hidden;
+    }
+    .grade-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+      opacity: 0; transition: opacity 0.3s ease;
+    }
+    .grade-card:hover::before { opacity: 1; }
+    .grade-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(45,212,191,0.4); }
 
-        .grade-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            padding: 0 20px;
-        }
+    .grade-icon { font-size: 2.5rem; margin-bottom: 15px; }
+    .grade-title { color: white; font-size: 1.6rem; font-weight: 700; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 
-        .grade-card {
-            background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            min-height: 180px;
-            position: relative;
-            overflow: hidden;
-        }
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #2dd4bf 50%, transparent 100%);
+      margin: 40px 0;
+    }
 
-        .grade-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .grade-card:hover::before {
-            opacity: 1;
-        }
-
-        .grade-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(45, 212, 191, 0.4);
-        }
-
-        .grade-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-        }
-
-        .grade-title {
-            color: white;
-            font-size: 1.6rem;
-            font-weight: 700;
-            text-align: center;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .divider {
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, #2dd4bf 50%, transparent 100%);
-            margin: 40px 0;
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .header-title h1 {
-                font-size: 2rem;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-
-            .grade-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .grade-card {
-                min-height: 150px;
-            }
-
-            .grade-title {
-                font-size: 1.4rem;
-            }
-        }
-    </style>
+    @media (max-width: 768px) {
+      .header { flex-direction: column; align-items: flex-start; }
+      .header-title h1 { font-size: 2rem; }
+      .section-title { font-size: 1.5rem; }
+      .grade-grid { grid-template-columns: 1fr; }
+      .grade-card { min-height: 150px; }
+      .grade-title { font-size: 1.4rem; }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-        <div class="header">
-            <a href="https://metahan88-droid.github.io/cbci" class="back-button">← 홈으로</a>
-            <div class="header-title">
-                <h1>학년별 탐구자료</h1>
-            </div>
-        </div>
-    </div>
-
-        <!-- 중학교 섹션 -->
-        <div class="section">
-            <h2 class="section-title">중학교</h2>
-            <div class="grade-grid">
-                <a href="#middle-1" class="grade-card">
-                    <div class="grade-icon">📐</div>
-                    <div class="grade-title">1학년</div>
-                </a>
-                <a href="#middle-2" class="grade-card">
-                    <div class="grade-icon">📊</div>
-                    <div class="grade-title">2학년</div>
-                </a>
-                <a href="#middle-3" class="grade-card">
-                    <div class="grade-icon">📈</div>
-                    <div class="grade-title">3학년</div>
-                </a>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- 고등학교 섹션 -->
-        <div class="section">
-            <h2 class="section-title">고등학교</h2>
-            <div class="grade-grid">
-                <a href="#high-1" class="grade-card">
-                    <div class="grade-icon">🔢</div>
-                    <div class="grade-title">1학년</div>
-                </a>
-                <a href="#high-2" class="grade-card">
-                    <div class="grade-icon">∫</div>
-                    <div class="grade-title">2학년</div>
-                </a>
-                <a href="#high-3" class="grade-card">
-                    <div class="grade-icon">∑</div>
-                    <div class="grade-title">3학년</div>
-                </a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+  <div class="container">
+    <div class="header">
+      <a href="https://metahan88-droid.github.io/cbci" class="back-button">← 홈으로</
