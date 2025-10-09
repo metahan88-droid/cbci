@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>피자 채우기 챌린지</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 20px 40px 40px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        #scene-container {
+            width: 100%;
+            height: 400px;
+            margin: 0 auto;
+            border-radius: 20px;
+            background: #f0f0f0;
+            cursor: grab;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        #scene-container:active {
+            cursor: grabbing;
+        }
+        .labels-container {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .label-group {
+            text-align: center;
+        }
+        .label { font-size: 20px; font-weight: bold; color: #444; }
+        .size-info { font-size: 14px; color: #666; margin-top: 5px; }
+        .controls { text-align: center; margin: 20px 0; }
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        input[type="number"] {
+            width: 120px;
+            padding: 10px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        .status {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0 0;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .status.need-more { background: linear-gradient(135deg, #fff3cd, #ffd700); color: #856404; }
+        .status.perfect { background: linear-gradient(135deg, #d4edda, #28a745); color: white; animation: celebrate 0.5s; }
+        .status.overflow { background: linear-gradient(135deg, #f8d7da, #dc3545); color: white; animation: shake 0.5s; }
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍕 피자 채우기 챌린지 (3D) 🍕</h1>
+        
+        <div id="scene-container"></div>
+        
+        <div class="labels-container">
+            <div class="label-group">
+                <div class="label">S 사이즈</div>
+                <div class="size-info">지름 20cm, 높이 2cm</div>
+            </div>
+            <div class="label-group">
+                <div class="label">L 사이즈</div>
+                <div class="size-info">지름 30cm, 높이 ?cm</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label style="font-size: 18px; color: #555;">S사이즈 개수:</label>
+                <input type="number" id="pizzaCountInput" min="0" max="10" step="0.1" value="0">
+            </div>
+        </div>
+        
+        <div class="status" id="status">S사이즈 피자를 조각내서 L사이즈에 채워보세요!</div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // 상수 정의
+        const L_RADIUS = 1.5;
+        const L_HEIGHT = 0.3;
+        const S_RADIUS = 1.0;
+        const S_HEIGHT = 0.2;
+        const L_VOLUME = 675; // π * 15² * 3
+        const S_VOLUME = 200; // π * 10² * 2
+        const EXACT_COUNT = L_VOLUME / S_VOLUME; // 3.375
+        
+        // L 피자의 밑면적 (π * r²)
+        const L_BASE_AREA = Math.PI * 15 * 15; // 225π cm²
+        
+        let scene, camera, renderer, controls;
+        let sPizza, lPizzaContainer, pizzaTexture;
+        let filledPizza = null; // L 피자 내부를 채우는 피자
+        const flyingPieces = []; // 날아가는 조각들
+        
+        let currentCount = 0;
+        let targetCount = 0;
+
+        const sceneContainer = document.getElementById('scene-container');
+
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+
+            camera = new THREE.PerspectiveCamera(75, sceneContainer.clientWidth / sceneContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 4.5, 5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            sceneContainer.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 3;
+            controls.maxDistance = 12;
+            controls.target.set(0, 0, 0);
+
+            pizzaTexture = createPizzaTexture();
+
+            sPizza = createPizza(S_RADIUS, S_HEIGHT, pizzaTexture);
+            sPizza.position.set(-3.5, S_HEIGHT / 2, 0);
+            scene.add(sPizza);
+
+            lPizzaContainer = createPizzaContainer(L_RADIUS, L_HEIGHT);
+            lPizzaContainer.position.set(2, 0, 0);
+            scene.add(lPizzaContainer);
+            
+            window.addEventListener('resize', onWindowResize);
+            animate();
+        }
+
+        function createPizzaTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const context = canvas.getContext('2d');
+            context.fillStyle = '#FFD700';
+            context.fillRect(0, 0, 256, 256);
+            context.fillStyle = '#C04040';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * 256;
+                const y = Math.random() * 256;
+                const radius = 10 + Math.random() * 10;
+                context.beginPath();
+                context.arc(x, y, radius, 0, Math.PI * 2);
+                context.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createPizza(radius, height, texture) {
+            const group = new THREE.Group();
+            const crustMaterial = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const topMaterial = new THREE.MeshStandardMaterial({ map: texture });
+            const geometry = new THREE.CylinderGeometry(radius, radius, height, 64);
+            const pizzaMesh = new THREE.Mesh(geometry, [crustMaterial, topMaterial, crustMaterial]);
+            pizzaMesh.castShadow = true;
+            pizzaMesh.receiveShadow = true;
+            group.add(pizzaMesh);
+            return group;
+        }
+
+        function createPizzaPiece(size) {
+            const group = new THREE.Group();
+            const crustMaterial = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const topMaterial = new THREE.MeshStandardMaterial({ map: pizzaTexture });
+            const radius = S_RADIUS * size * 0.3;
+            const height = S_HEIGHT * 0.5;
+            const geometry = new THREE.CylinderGeometry(radius, radius, height, 32);
+            const pizzaMesh = new THREE.Mesh(geometry, [crustMaterial, topMaterial, crustMaterial]);
+            pizzaMesh.castShadow = true;
+            group.add(pizzaMesh);
+            return group;
+        }
+        
+        function createPizzaContainer(radius, height) {
+            const group = new THREE.Group();
+            const material = new THREE.MeshStandardMaterial({ 
+                color: '#E0C8AC', 
+                side: THREE.DoubleSide, 
+                transparent: true, 
+                opacity: 0.3 
+            });
+            
+            // 바닥
+            const bottomGeo = new THREE.CylinderGeometry(radius, radius, 0.02, 64);
+            const bottom = new THREE.Mesh(bottomGeo, material);
+            bottom.position.y = -height / 2;
+            bottom.receiveShadow = true;
+            
+            // 벽
+            const wallGeo = new THREE.CylinderGeometry(radius, radius, height, 64, 1, true);
+            const wall = new THREE.Mesh(wallGeo, material);
+            
+            group.add(bottom);
+            group.add(wall);
+            return group;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            // 날아가는 조각들 애니메이션
+            for (let i = flyingPieces.length - 1; i >= 0; i--) {
+                const piece = flyingPieces[i];
+                piece.progress += 0.03;
+                
+                // 포물선 운동
+                const arcHeight = Math.sin(piece.progress * Math.PI) * 2.5;
+                piece.mesh.position.lerpVectors(piece.start, piece.end, piece.progress);
+                piece.mesh.position.y += arcHeight;
+                
+                // 회전 효과
+                piece.mesh.rotation.x += 0.1;
+                piece.mesh.rotation.y += 0.15;
+                
+                // 도착하면 제거하고 L 피자 업데이트
+                if (piece.progress >= 1) {
+                    scene.remove(piece.mesh);
+                    flyingPieces.splice(i, 1);
+                    
+                    // 모든 조각이 도착했으면 L 피자 업데이트
+                    if (flyingPieces.length === 0) {
+                        updateFilledPizza(targetCount);
+                    }
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = sceneContainer.clientWidth / sceneContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+        }
+
+        function updateVisualization() {
+            const inputEl = document.getElementById('pizzaCountInput');
+            let count = parseFloat(inputEl.value);
+            
+            if (isNaN(count) || count < 0) count = 0;
+            const maxPizzas = 10;
+            if (count > maxPizzas) {
+                count = maxPizzas;
+                inputEl.value = maxPizzas;
+            }
+            
+            targetCount = count;
+            
+            // 증가하는 경우에만 조각 애니메이션
+            if (count > currentCount) {
+                const diff = count - currentCount;
+                createFlyingPieces(diff);
+            } else {
+                // 감소하는 경우 즉시 업데이트
+                updateFilledPizza(count);
+            }
+            
+            currentCount = count;
+            updateStatusText(count);
+        }
+
+        function createFlyingPieces(pizzaCount) {
+            // 여러 조각으로 분해
+            const numPieces = Math.max(8, Math.ceil(pizzaCount * 8));
+            
+            for (let i = 0; i < numPieces; i++) {
+                const piece = createPizzaPiece(0.5 + Math.random() * 0.5);
+                
+                // 시작 위치 (S 피자 주변에서 폭발하듯이)
+                const startAngle = (i / numPieces) * Math.PI * 2;
+                const startRadius = 0.3;
+                const startX = sPizza.position.x + Math.cos(startAngle) * startRadius;
+                const startY = sPizza.position.y + (Math.random() - 0.5) * 0.5;
+                const startZ = sPizza.position.z + Math.sin(startAngle) * startRadius;
+                
+                piece.position.set(startX, startY, startZ);
+                scene.add(piece);
+                
+                // 끝 위치 (L 피자 내부)
+                const endAngle = Math.random() * Math.PI * 2;
+                const endRadius = L_RADIUS * Math.random() * 0.8;
+                const endX = lPizzaContainer.position.x + Math.cos(endAngle) * endRadius;
+                const endZ = lPizzaContainer.position.z + Math.sin(endAngle) * endRadius;
+                
+                // 목표 높이 계산
+                const fillHeight = calculateFillHeight(targetCount);
+                const endY = lPizzaContainer.position.y - (L_HEIGHT / 2) + fillHeight;
+                
+                flyingPieces.push({
+                    mesh: piece,
+                    start: new THREE.Vector3(startX, startY, startZ),
+                    end: new THREE.Vector3(endX, endY, endZ),
+                    progress: 0
+                });
+            }
+        }
+
+        function calculateFillHeight(pizzaCount) {
+            // S 피자의 총 부피를 L 피자 밑면에 펼쳤을 때의 높이 (cm 단위)
+            // 높이(cm) = (S피자 개수 × 200π) / (225π) = (S피자 개수 × 200) / 225
+            const heightInCm = (pizzaCount * 200) / 225;
+            
+            // 3D 씬의 스케일로 변환 (3cm = 0.3 units, 즉 1cm = 0.1 units)
+            const fillHeight = heightInCm * 0.1;
+            
+            return fillHeight; // 넘치는 것도 표현하기 위해 min 제거
+        }
+
+        function updateFilledPizza(pizzaCount) {
+            // 기존 채워진 피자 제거
+            if (filledPizza) {
+                lPizzaContainer.remove(filledPizza);
+            }
+            
+            if (pizzaCount === 0) return;
+            
+            // 채울 높이 계산
+            const fillHeight = calculateFillHeight(pizzaCount);
+            
+            // L 피자와 같은 반지름, 계산된 높이로 피자 생성
+            const crustMaterial = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const topMaterial = new THREE.MeshStandardMaterial({ map: pizzaTexture });
+            const geometry = new THREE.CylinderGeometry(L_RADIUS * 0.98, L_RADIUS * 0.98, fillHeight, 64);
+            const pizzaMesh = new THREE.Mesh(geometry, [crustMaterial, topMaterial, crustMaterial]);
+            pizzaMesh.castShadow = true;
+            pizzaMesh.receiveShadow = true;
+            
+            filledPizza = new THREE.Group();
+            filledPizza.add(pizzaMesh);
+            
+            // 위치 조정 (바닥에서 시작)
+            filledPizza.position.y = -(L_HEIGHT / 2) + (fillHeight / 2);
+            
+            lPizzaContainer.add(filledPizza);
+        }
+        
+        function updateStatusText(count) {
+            const totalSVolume = count * S_VOLUME;
+            const percentage = (totalSVolume / L_VOLUME) * 100;
+            const statusEl = document.getElementById('status');
+            
+            if (count === 0) {
+                statusEl.className = 'status';
+                statusEl.textContent = 'S사이즈 피자를 조각내서 L사이즈에 채워보세요!';
+            } else if (percentage < 95) {
+                statusEl.className = 'status need-more';
+                statusEl.textContent = `🍕 ${count.toFixed(1)}개 투입! 아직 공간이 남았어요! 🍕`;
+            } else if (percentage >= 95 && percentage <= 105) {
+                statusEl.className = 'status perfect';
+                statusEl.textContent = `🎉 ${count.toFixed(1)}개로 완벽하게 채웠어요! 🎉`;
+            } else {
+                statusEl.className = 'status overflow';
+                statusEl.textContent = `💥 ${count.toFixed(1)}개는 너무 많아요! 넘쳤어요! 💥`;
+            }
+        }
+
+        document.getElementById('pizzaCountInput').addEventListener('input', updateVisualization);
+        init3D();
+        updateVisualization();
+
+    </script>
+</body>
+</html>
