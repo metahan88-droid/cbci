@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>피자 옮겨 담기 - S→L 틀 채우기 (v3.6.3: 잔여표시/기본값/수치안정화)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family:'Noto Sans KR', sans-serif; }
+    #sceneWrap { position:relative; }
+    #scene { background:#0f172a; border-radius:0.5rem; }
+    .btn { @apply bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all duration-200; }
+    .btn-secondary { @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500 text-white; }
+    .btn:disabled, .btn-secondary:disabled { @apply opacity-40 cursor-not-allowed; }
+    input[type="number"] {
+      @apply px-3 py-2 text-base text-center border-2 border-gray-600 rounded-lg font-bold;
+      color:#000 !important; background:#fff !important; width:6rem;
+    }
+    .label { @apply text-sm text-gray-300; }
+    .badge { @apply inline-flex items-center gap-1 bg-gray-700 text-gray-100 text-xs font-semibold px-2 py-1 rounded; }
+    #marquee { position:absolute; border:2px dashed #38bdf8; background:rgba(56,189,248,0.12); pointer-events:none; display:none; }
+    .hint { @apply text-[11px] text-gray-400; }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2" id="sceneWrap">
+      <div id="scene" class="w-full h-[72vh] min-h-[520px]"></div>
+      <div id="marquee"></div>
+      <p class="hint mt-2 text-center">
+        좌클릭: 선택 · <b>Ctrl+클릭</b>: 다중 선택 · <b>빈 공간 우클릭 드래그</b>: 화면 회전 · 휠: 확대/축소 ·
+        우클릭(조각): % 표시 · <b>드래그</b>: 선택된 조각 이동 / <b>드롭</b>: L틀 위에서 놓으면 담기 · <b>Ctrl+Z</b>: 되돌리기
+      </p>
+    </div>
+    <div class="space-y-4">
+      <div class="bg-gray-800 p-4 rounded-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-teal-300">만들기</h2>
+          <div class="flex items-center gap-2">
+            <span id="sTotalBadge" class="badge">총 S피자: <b>0</b>판</span>
+            <span id="selBadge" class="badge hidden">선택: <b>0</b>개</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="label w-28">S 몇판 만들기</span>
+          <input id="sCount" type="number" min="1" max="24" step="1" value="1">
+          <button id="makeS" class="btn">만들기</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="label w-28">L 틀 몇판 만들기</span>
+          <input id="lCount" type="number" min="1" max="12" step="1" value="3">
+          <button id="makeL" class="btn">만들기</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="combineBtn" class="btn" disabled>선택 조각 <b>합치기</b></button>
+          <button id="clearSelBtn" class="btn-secondary">선택 해제</button>
+        </div>
+        <label class="flex items-center gap-2 text-xs text-gray-300 pt-1">
+          <input id="spawnTokensChk" type="checkbox" class="accent-teal-400">
+          <span>빈 L틀에 담을 때, <b>S-정규화 텍스트</b>(투입/남음) 표시</span>
+        </label>
+        <p class="text-xs text-gray-400">합치기는 S단위로 정규화합니다. (예: 0.3+0.6 → 0.9조각 / 1.3+0.4 → 1조각 + 0.7조각)</p>
+        <button id="undoBtn" class="btn-secondary w-full mt-2">↶ 되돌리기 (Ctrl+Z)</button>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded-xl space-y-2">
+        <h2 class="text-xl font-bold text-teal-300">상태</h2>
+        <div id="status" class="text-sm text-gray-300">대기 중…</div>
+        <ul id="lStats" class="text-sm text-gray-400 list-disc pl-5"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+  const S_R = 10, S_H = 2, S_VOL = S_R*S_R*S_H;  // 200
+  const L_R = 15, H_SIM = 3, L_CAP = L_R*L_R*H_SIM; // 675
+  const SCALE = 0.06, cm2w = v=> v*SCALE;
+  const EPS = 1e-6;
+
+  let scene, camera, renderer, controls, raycaster, mouse;
+  let objects = [];
+  const meshToPiece = new Map();
+  const meshToMold  = new Map();
+
+  let pizzaTexture;
+  const pizzas = [];
+  const molds = [];
+
+  const statusEl = document.getElementById('status');
+  const lStats = document.getElementById('lStats');
+  const sTotalBadge = document.getElementById('sTotalBadge').querySelector('b');
+  const selBadgeWrap = document.getElementById('selBadge');
+  const selBadgeNum = selBadgeWrap.querySelector('b');
+  const spawnTokensChk = document.getElementById('spawnTokensChk');
+
+  const marquee = document.getElementById('marquee');
+  const sceneWrap = document.getElementById('sceneWrap');
+  const sceneDiv = document.getElementById('scene');
+  let marqueeStart = null;
+
+  const selection = new Set();
+  function updateSelBadge(){
+    const n = selection.size;
+    if(n>0){ selBadgeWrap.classList.remove('hidden'); selBadgeNum.textContent = n; }
+    else { selBadgeWrap.classList.add('hidden'); }
+    updateActionButtons();
+  }
+  function clearSelection(){ selection.forEach(it=>setSelected(it,false)); selection.clear(); updateSelBadge(); }
+  function setSelected(item, selected){
+    if(item.type==='piece'){ item.obj.setHighlight(selected); }
+    else if(item.type==='mold'){ item.obj.setHighlight(selected); }
+    if(selected) selection.add(item); else selection.delete(item);
+  }
+  function selectOnly(item){ clearSelection(); if(item) setSelected(item, true); updateSelBadge(); }
+  function toggleSelect(item){
+    const has = [...selection].some(s=> s.type===item.type && s.obj===item.obj);
+    setSelected(item, !has); updateSelBadge();
+  }
+
+  const history = [];
+  let restoring = false;
+  let totalSGenerated = 0;
+  function updateSTotal(){ sTotalBadge.textContent = totalSGenerated.toString(); }
+  function pushHistory(label=''){
+    if(restoring) return;
+    const state = serializeState();
+    state._label = label;
+    history.push(state);
+    if(history.length>60) history.shift();
+  }
+  function undo(){
+    if(history.length<=1) return;
+    history.pop();
+    const prev = history[history.length-1];
+    restoring = true; restoreState(prev); restoring = false;
+    status('되돌렸어요.');
+  }
+  window.addEventListener('keydown', (e)=>{
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if((tag==='input' || tag==='textarea' || e.target.isContentEditable)) return;
+    if(e.key.toLowerCase()==='z' && (e.ctrlKey || e.metaKey)){
+      e.preventDefault(); undo();
+    }
+  });
+  document.getElementById('undoBtn').addEventListener('click', undo);
+
+  const combineBtn = document.getElementById('combineBtn');
+  function updateActionButtons(){
+    const selPieces = getSelectedPieces();
+    combineBtn.disabled = !(selPieces.length>=2);
+  }
+
+  const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+  let dragActive = false, dragStartPoint=null, dragOffsets=null, dragCandidates=[];
+  let hoverMold = null;
+
+  init();
+  animate();
+  updateSTotal();
+  pushHistory('init');
+
+  function init(){
+    scene = new THREE.Scene(); scene.background = new THREE.Color(0x0f172a);
+    const w = sceneDiv.clientWidth, h = sceneDiv.clientHeight;
+    camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 2000);
+    camera.position.set(0, cm2w(160), cm2w(240));
+
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(w,h); renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.localClippingEnabled = true;
+    sceneDiv.appendChild(renderer.domElement);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.05;
+    controls.target.set(0, cm2w(20), 0);
+    controls.enablePan = false;
+    controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(1,1,0.6).multiplyScalar(400*SCALE); scene.add(dir);
+
+    const grid = new THREE.GridHelper(cm2w(1200), 48, 0x2dd4bf, 0x334155);
+    grid.position.y = 0; scene.add(grid);
+
+    raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+    window.addEventListener('resize', onResize);
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('contextmenu', e=>e.preventDefault());
+
+    pizzaTexture = makePizzaTexture();
+    status('S 1판 = 200, L 용량 = 675. 4판 넣으면 1틀 가득 + 0.625판 잔여가 정상입니다.');
+  }
+
+  function onResize(){
+    camera.aspect = sceneDiv.clientWidth/sceneDiv.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(sceneDiv.clientWidth, sceneDiv.clientHeight);
+  }
+
+  function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+
+  function status(msg){ statusEl.textContent = msg; }
+
+  function makePizzaTexture(){
+    const c = document.createElement('canvas'); c.width=c.height=256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#FFD36E'; ctx.fillRect(0,0,256,256);
+    ctx.fillStyle = '#C73E3E';
+    for(let i=0;i<22;i++){ const x=Math.random()*256, y=Math.random()*256, r=7+Math.random()*12; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+    return new THREE.CanvasTexture(c);
+  }
+
+  function pizzaMesh(radius_cm, height_cm){
+    const geo = new THREE.CylinderGeometry(cm2w(radius_cm), cm2w(radius_cm), cm2w(height_cm), 64, 1, false);
+    const crustMat = new THREE.MeshStandardMaterial({color:'#D2B48C', clippingPlanes:[], clipShadows:true, emissive:'#000000'});
+    const topMat   = new THREE.MeshStandardMaterial({map:pizzaTexture, clippingPlanes:[], clipShadows:true, emissive:'#000000'});
+    const mesh = new THREE.Mesh(geo, [crustMat, topMat, crustMat]);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    return mesh;
+  }
+
+  function lMoldMesh(radius_cm, height_cm){
+    const g = new THREE.Group();
+    const wallMat = new THREE.MeshStandardMaterial({ color:'#9ca3af', transparent:true, opacity:0.18, side:THREE.DoubleSide });
+    const bottom  = new THREE.Mesh(new THREE.CylinderGeometry(cm2w(radius_cm), cm2w(radius_cm), cm2w(0.8), 64), wallMat);
+    bottom.position.y = 0;
+    const wall    = new THREE.Mesh(new THREE.CylinderGeometry(cm2w(radius_cm), cm2w(radius_cm), cm2w(height_cm), 64, 1, true), wallMat);
+    wall.position.y = cm2w(height_cm/2);
+    g.add(bottom); g.add(wall);
+
+    const fillMat = new THREE.MeshStandardMaterial({ color:'#F4B183', transparent:true, opacity:0.9 });
+    const fill = new THREE.Mesh(new THREE.CylinderGeometry(cm2w(radius_cm*0.98), cm2w(radius_cm*0.98), cm2w(0.1), 64), fillMat);
+    fill.position.y = cm2w(0.05);
+    g.add(fill);
+
+    const sprite = makeTextSprite('가득찼어요', { fontsize: 36, color: '#22c55e' });
+    sprite.scale.set(0.8,0.2,1);
+    sprite.position.set(0, -cm2w(2.5), 0);
+    sprite.visible = false;
+    g.add(sprite);
+
+    const hitMat = new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.01, depthWrite:false });
+    const hit = new THREE.Mesh(new THREE.CylinderGeometry(cm2w(radius_cm), cm2w(radius_cm), cm2w(height_cm+4), 32, 1, true), hitMat);
+    hit.position.y = cm2w(height_cm/2);
+    g.add(hit);
+
+    const ringGeo = new THREE.RingGeometry(cm2w(radius_cm*1.04), cm2w(radius_cm*1.15), 64);
+    const ringMat = new THREE.MeshBasicMaterial({ color:0x60a5fa, transparent:true, opacity:0.5, side:THREE.DoubleSide });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI/2;
+    ring.position.y = cm2w(0.2);
+    ring.visible = false;
+    g.add(ring);
+
+    return { group: g, fillMesh: fill, fullText: sprite, hitMesh: hit, ring: ring };
+  }
+
+  function makeTextSprite(message, opts){
+    const fontface = 'Noto Sans KR';
+    const fontsize = (opts && opts.fontsize) || 48;
+    const color = (opts && opts.color) || '#fff';
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    ctx.font = fontsize + 'px ' + fontface;
+    const padding = 12;
+    const metrics = ctx.measureText(message);
+    c.width = Math.max(64, metrics.width + padding*2);
+    c.height = Math.max(48, fontsize + padding*2);
+    ctx.font = fontsize + 'px ' + fontface;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'top';
+    ctx.fillText(message, padding, padding);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    return new THREE.Sprite(mat);
+  }
+
+  function badgeSprite(text){
+    return makeTextSprite(text, { fontsize: 34, color: '#93c5fd' });
+  }
+
+  class Piece {
+    constructor(radius_cm, height_cm){
+      this.radius = radius_cm; this.height = height_cm;
+      this.group = new THREE.Group();
+      this.mesh = pizzaMesh(radius_cm, height_cm);
+      this.group.add(this.mesh);
+      this.volume = radius_cm*radius_cm*height_cm;
+      pizzas.push(this);
+      meshToPiece.set(this.mesh, this); objects.push(this.mesh);
+      scene.add(this.group);
+      this.percentSprite = null;
+    }
+    showPercent(){
+      const pct = Math.min(999, (this.volume / S_VOL) * 100);
+      const label = pct.toFixed(1) + '%';
+      if(this.percentSprite){
+        this.group.remove(this.percentSprite);
+        if(this.percentSprite.material.map) this.percentSprite.material.map.dispose();
+        this.percentSprite.material.dispose();
+      }
+      this.percentSprite = badgeSprite(label);
+      this.percentSprite.scale.set(0.9, 0.25, 1);
+      this.percentSprite.position.set(0, cm2w(this.height)+cm2w(6), 0);
+      this.group.add(this.percentSprite);
+      setTimeout(()=>{ if(this.percentSprite){ this.group.remove(this.percentSprite); this.percentSprite=null; } }, 1200);
+      status(`선택 조각: S 한 판 대비 ${label}`);
+    }
+    setHighlight(on){
+      const mats = Array.isArray(this.mesh.material)?this.mesh.material:[this.mesh.material];
+      mats.forEach(m=>{ if(m.emissive) m.emissive.set(on?'#60a5fa':'#000000'); });
+    }
+    dispose(){
+      const i1 = pizzas.indexOf(this); if(i1>=0) pizzas.splice(i1,1);
+      const i2 = objects.indexOf(this.mesh); if(i2>=0) objects.splice(i2,1);
+      meshToPiece.delete(this.mesh);
+      if(this.percentSprite){ this.group.remove(this.percentSprite); this.percentSprite=null; }
+      for(const it of [...selection]){ if(it.type==='piece' && it.obj===this) selection.delete(it); }
+      scene.remove(this.group);
+      updateSelBadge();
+    }
+  }
+
+  class LMold {
+    constructor(){
+      this.radius = L_R; this.height = H_SIM; this.capacity = L_CAP; this.filled = 0;
+      const { group, fillMesh, fullText, hitMesh, ring } = lMoldMesh(this.radius, this.height);
+      this.group = group; this.fillMesh = fillMesh; this.fullText = fullText; this.hitMesh = hitMesh; this.ring = ring;
+      molds.push(this); scene.add(this.group);
+      meshToMold.set(hitMesh, this); objects.push(hitMesh);
+      this.updateFill(0);
+      this.badge = null;
+    }
+    addPieceVolume(vol){ this.updateFill(this.filled + vol); }
+    remaining(){ return Math.max(0, this.capacity - this.filled); }
+    updateFill(newVol){
+      this.filled = Math.max(0, Math.min(this.capacity*1.2, newVol));
+      const frac = Math.min(1, this.filled / this.capacity);
+      this.fillMesh.scale.set(1, frac, 1);
+      this.fillMesh.position.y = cm2w(this.height*frac/2);
+      this.fullText.visible = (frac >= 0.999 - 1e-4);
+      updateLStats();
+    }
+    setHighlight(on){ this.ring.visible = !!on; }
+    showBadge(text){
+      if(this.badge){ this.group.remove(this.badge); this.badge=null; }
+      this.badge = badgeSprite(text);
+      this.badge.scale.set(0.9, 0.25, 1);
+      this.badge.position.set(0, cm2w(this.height)+cm2w(8), 0);
+      this.group.add(this.badge);
+      setTimeout(()=>{
+        if(this.badge){ this.group.remove(this.badge); this.badge=null; }
+      }, 1400);
+    }
+    dispose(){
+      const i = molds.indexOf(this); if(i>=0) molds.splice(i,1);
+      const oi = objects.indexOf(this.hitMesh); if(oi>=0) objects.splice(oi,1);
+      meshToMold.delete(this.hitMesh);
+      for(const it of [...selection]){ if(it.type==='mold' && it.obj===this) selection.delete(it); }
+      scene.remove(this.group);
+      updateSelBadge();
+    }
+  }
+
+  function updateLStats(){
+    lStats.innerHTML = '';
+    molds.forEach((m,i)=>{
+      const li = document.createElement('li');
+      const pct = Math.min(100, (m.filled/m.capacity*100)).toFixed(1);
+      li.textContent = `L 틀 #${i+1}: ${pct}% 채움 ${m.fullText.visible?'(가득참)':''}`;
+      lStats.appendChild(li);
+    });
+    updateActionButtons();
+  }
+
+  function layoutPieces(){
+    let i=0; const cols = 3; const gap = cm2w(40);
+    pizzas.forEach(p=>{
+      const r = Math.floor(i/cols), c = i%cols;
+      p.group.position.set(-cm2w(120) + c*gap, cm2w(S_H/2), -cm2w(80) + r*gap); i++;
+    });
+  }
+  function layoutMolds(){
+    const cols = 3, gap = cm2w(80);
+    molds.forEach((m,i)=>{
+      const r = Math.floor(i/cols), c = i%cols;
+      m.group.position.set(cm2w(70) + c*gap, 0, -cm2w(60) + r*gap);
+    });
+  }
+
+  function serializeState(){
+    return {
+      sTotal: totalSGenerated,
+      pieces: pizzas.map(p=>({
+        position: p.group.position.toArray(),
+        quaternion: [p.group.quaternion.x, p.group.quaternion.y, p.group.quaternion.z, p.group.quaternion.w],
+        radius: p.radius, height: p.height
+      })),
+      molds: molds.map(m=>({
+        position: m.group.position.toArray(), filled: m.filled
+      }))
+    };
+  }
+  function restoreState(state){
+    while(pizzas.length){ pizzas[0].dispose(); }
+    while(molds.length){ molds[0].dispose(); }
+    objects = []; meshToPiece.clear(); meshToMold.clear();
+
+    totalSGenerated = state.sTotal || 0; updateSTotal();
+    state.pieces.forEach(sp=>{
+      const p = new Piece(sp.radius, sp.height);
+      p.group.position.fromArray(sp.position);
+      const q = new THREE.Quaternion(sp.quaternion[0], sp.quaternion[1], sp.quaternion[2], sp.quaternion[3]);
+      p.group.quaternion.copy(q);
+    });
+    state.molds.forEach(sm=>{
+      const m = new LMold(); m.group.position.fromArray(sm.position); m.updateFill(sm.filled);
+    });
+    clearSelection(); updateLStats();
+  }
+
+  document.getElementById('makeS').addEventListener('click', ()=>{
+    const n = Math.max(1, Math.min(24, parseInt(document.getElementById('sCount').value||'1')));
+    for(let i=0;i<n;i++){ new Piece(S_R, S_H); }
+    totalSGenerated += n; updateSTotal();
+    layoutPieces(); status(`S 피자 ${n}판을 만들었어요.`); pushHistory('makeS');
+  });
+  document.getElementById('makeL').addEventListener('click', ()=>{
+    const n = Math.max(1, Math.min(12, parseInt(document.getElementById('lCount').value||'1')));
+    for(let i=0;i<n;i++){ new LMold(); }
+    layoutMolds(); updateLStats(); status(`L 피자 틀 ${n}개를 만들었어요.`); pushHistory('makeL');
+  });
+
+  function toNDC(ev){
+    const rect = renderer.domElement.getBoundingClientRect();
+    return { x: ((ev.clientX-rect.left)/rect.width)*2 - 1, y: -((ev.clientY-rect.top)/rect.height)*2 + 1, rect };
+  }
+  function intersectPickables(ev){
+    const ndc = toNDC(ev); mouse.set(ndc.x, ndc.y); raycaster.setFromCamera(mouse, camera);
+    return raycaster.intersectObjects(objects, true);
+  }
+  function ndcToGroundPoint(ndc){
+    raycaster.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+    const pt = new THREE.Vector3();
+    raycaster.ray.intersectPlane(groundPlane, pt);
+    return pt;
+  }
+
+  function getSelectedPieces(){ return [...selection].filter(it=>it.type==='piece').map(it=>it.obj); }
+  function setSelectedPiece(p, on){ setSelected({type:'piece', obj:p}, on); }
+  function getSingleSelectedMold(){ const ms = [...selection].filter(it=>it.type==='mold').map(it=>it.obj); return ms.length===1 ? ms[0] : null; }
+
+  function onPointerDown(ev){
+    const intersects = intersectPickables(ev);
+    const hitPiece = intersects.find(h=> meshToPiece.has(h.object));
+    const hitMold  = intersects.find(h=> meshToMold.has(h.object));
+
+    if(ev.button===2){
+      if(hitPiece){ meshToPiece.get(hitPiece.object).showPercent(); ev.preventDefault(); }
+      return;
+    }
+
+    if(ev.button===0){
+      if(hitPiece && !ev.ctrlKey){
+        const p = meshToPiece.get(hitPiece.object);
+        const isSelected = getSelectedPieces().includes(p);
+        if(!isSelected) { clearSelection(); setSelectedPiece(p, true); updateSelBadge(); }
+      } else if(ev.ctrlKey){
+        if(hitPiece){ toggleSelect({type:'piece', obj:meshToPiece.get(hitPiece.object)}); return; }
+        if(hitMold){ toggleSelect({type:'mold', obj:meshToMold.get(hitMold.object)}); return; }
+      }
+
+      if(hitPiece){
+        const ndc = toNDC(ev);
+        dragStartPoint = ndcToGroundPoint(ndc);
+        dragCandidates = getSelectedPieces();
+        if(dragCandidates.length===0) dragCandidates = [ meshToPiece.get(hitPiece.object) ];
+        dragOffsets = dragCandidates.map(p=> ({ piece: p, offset: p.group.position.clone().sub(dragStartPoint) }));
+        dragActive = true;
+        controls.enabled = false;
+        marqueeStart = null;
+        return;
+      }
+
+      if(hitMold && !ev.ctrlKey){
+        clearSelection(); toggleSelect({type:'mold', obj:meshToMold.get(hitMold.object)});
+        return;
+      }
+
+      startMarquee(ev);
+    }
+  }
+
+  function startMarquee(ev){
+    const { rect } = toNDC(ev);
+    marqueeStart = { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+    marquee.style.display = 'block';
+    marquee.style.left = marqueeStart.x+'px'; marquee.style.top = marqueeStart.y+'px';
+    marquee.style.width = '1px'; marquee.style.height = '1px';
+  }
+
+  function onPointerMove(ev){
+    if(dragActive){
+      const ndc = toNDC(ev);
+      const cur = ndcToGroundPoint(ndc);
+      dragOffsets.forEach(({piece, offset})=>{
+        const pos = cur.clone().add(offset);
+        piece.group.position.set(pos.x, cm2w(S_H/2), pos.z);
+      });
+      const dropPt = cur; updateHoverMold(dropPt);
+      return;
+    }
+    if(!marqueeStart) return;
+    const { rect } = toNDC(ev);
+    const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+    const left = Math.min(x, marqueeStart.x), top = Math.min(y, marqueeStart.y);
+    const w = Math.abs(x - marqueeStart.x), h = Math.abs(y - marqueeStart.y);
+    marquee.style.left = left+'px'; marquee.style.top = top+'px';
+    marquee.style.width = w+'px'; marquee.style.height = h+'px';
+  }
+
+  function updateHoverMold(dropPt){
+    const rWorld = cm2w(L_R)*1.02;
+    let found=null, best=Infinity;
+    molds.forEach(m=>{
+      const c = m.group.position;
+      const d2 = (dropPt.x-c.x)*(dropPt.x-c.x)+(dropPt.z-c.z)*(dropPt.z-c.z);
+      if(d2 <= rWorld*rWorld && d2<best){ best=d2; found=m; }
+      m.setHighlight(false);
+    });
+    hoverMold = found;
+    if(hoverMold) hoverMold.setHighlight(true);
+  }
+
+  function onPointerUp(ev){
+    if(dragActive){
+      const sel = getSelectedPieces();
+      const rWorld = cm2w(L_R)*1.02;
+      let target = null;
+
+      let bestCount = 0, bestM = null;
+      molds.forEach(m=>{
+        const c = m.group.position; let cnt=0;
+        sel.forEach(p=>{
+          const wp = p.group.position;
+          const d2 = (wp.x-c.x)*(wp.x-c.x)+(wp.z-c.z)*(wp.z-c.z);
+          if(d2 <= rWorld*rWorld) cnt++;
+        });
+        if(cnt>bestCount){ bestCount=cnt; bestM=m; }
+      });
+      if(bestCount>0) target = bestM;
+
+      if(!target){
+        const ndc = toNDC(ev);
+        const dropPt = ndcToGroundPoint(ndc);
+        let best=Infinity;
+        molds.forEach(m=>{
+          const c = m.group.position;
+          const d2 = (dropPt.x-c.x)*(dropPt.x-c.x)+(dropPt.z-c.z)*(dropPt.z-c.z);
+          if(d2 <= rWorld*rWorld && d2<best){ best=d2; target=m; }
+        });
+      }
+
+      if(!target && sel.length>0){
+        let best=Infinity;
+        const cx = sel.reduce((s,p)=>s+p.group.position.x,0)/sel.length;
+        const cz = sel.reduce((s,p)=>s+p.group.position.z,0)/sel.length;
+        molds.forEach(m=>{
+          const c = m.group.position;
+          const d2 = (cx-c.x)*(cx-c.x)+(cz-c.z)*(cz-c.z);
+          if(d2 < (rWorld*1.2)*(rWorld*1.2) && d2<best){ best=d2; target=m; }
+        });
+      }
+
+      if(hoverMold){ hoverMold.setHighlight(false); hoverMold=null; }
+      if(target){ packSelectedToMold(target); }
+      dragActive = false; dragStartPoint=null; dragOffsets=null; dragCandidates=[];
+      controls.enabled = true;
+    } else if(marqueeStart){
+      finishMarquee(ev);
+      marqueeStart = null; marquee.style.display='none';
+    }
+  }
+
+  function finishMarquee(ev){
+    const x1 = parseFloat(marquee.style.left);
+    const y1 = parseFloat(marquee.style.top);
+    const x2 = x1 + parseFloat(marquee.style.width);
+    const y2 = y1 + parseFloat(marquee.style.height);
+    const add = ev.ctrlKey;
+    function inRect(pos2){ return pos2.x >= x1 && pos2.x <= x2 && pos2.y >= y1 && pos2.y <= y2; }
+    if(!add) clearSelection();
+    pizzas.forEach(p=>{
+      const pos = p.group.getWorldPosition(new THREE.Vector3());
+      const sp = toScreen(pos);
+      if(inRect(sp)) setSelected({type:'piece', obj:p}, true);
+    });
+    updateSelBadge();
+    status(`영역 선택: ${selection.size}개`);
+  }
+
+  function toScreen(vec3){
+    const v = vec3.clone().project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    const wrapRect = sceneWrap.getBoundingClientRect();
+    return { x: (v.x*0.5+0.5) * rect.width + rect.left - wrapRect.left,
+             y: (-v.y*0.5+0.5) * rect.height + rect.top - wrapRect.top };
+  }
+
+  function packSelectedToMold(target){
+    const pcs = getSelectedPieces();
+    if(pcs.length===0){ status('먼저 조각을 선택하세요.'); return; }
+    if(!target){ status('선택된 L 틀을 하나만 선택하세요.'); return; }
+
+    const wasEmpty = target.filled < EPS;
+    let totalVol=0; pcs.forEach(p=> totalVol+=p.volume);
+    const totalS = totalVol / S_VOL;
+
+    const arr = pcs.slice().sort((a,b)=> b.volume - a.volume);
+    let remaining = target.remaining();
+    let usedVol = 0;
+
+    for(const piece of arr){
+      if(remaining <= EPS) break;
+      const vol = piece.volume;
+      if(vol <= remaining + EPS){
+        target.addPieceVolume(vol); usedVol += vol; remaining -= vol;
+        removePiece(piece);
+      } else {
+        target.addPieceVolume(remaining); usedVol += remaining;
+        const leftoverVol = vol - remaining;
+        removePiece(piece);
+        if(leftoverVol > EPS){
+          const rSmall = Math.sqrt(leftoverVol / S_H);
+          const small = new Piece(rSmall, S_H);
+          small.group.position.copy(target.group.position).add(new THREE.Vector3(cm2w(L_R + rSmall + 6), cm2w(S_H/2), 0));
+        }
+        remaining = 0;
+        break;
+      }
+    }
+
+    if(wasEmpty && spawnTokensChk.checked){
+      const full = Math.floor(totalS + 1e-9);
+      const rem = totalS - full;
+      const text = `투입 ${totalS.toFixed(3)}S (=${full}S${rem>EPS?`+${rem.toFixed(3)}S`:''})`;
+      target.showBadge(text);
+    }
+
+    const usedS = usedVol / S_VOL;
+    const leftoverS = Math.max(0, totalS - usedS);
+    status(`L틀에 담음: 투입 ${totalS.toFixed(3)}S → 사용 ${usedS.toFixed(3)}S, 남음 ${leftoverS.toFixed(3)}S`);
+
+    clearSelection();
+    pushHistory('packToSelected');
+  }
+
+  function removePiece(piece){
+    const oi = objects.indexOf(piece.mesh); if(oi>=0) objects.splice(oi,1);
+    const pi = pizzas.indexOf(piece); if(pi>=0) pizzas.splice(pi,1);
+    meshToPiece.delete(piece.mesh);
+    scene.remove(piece.group);
+  }
+
+  function combineSelected(){
+    const pcs = getSelectedPieces();
+    if(pcs.length<2){ status('둘 이상의 조각을 선택하세요.'); return; }
+    let totalVol = 0; pcs.forEach(p=> totalVol += p.volume);
+    pcs.forEach(p=> removePiece(p));
+    clearSelection();
+    const totalS = totalVol / S_VOL;
+    const full = Math.floor(totalS + 1e-9);
+    const rem = totalS - full;
+    const base = new THREE.Vector3(-cm2w(120), cm2w(S_H/2), -cm2w(80));
+    let created = 0;
+    const gap = cm2w(S_R*2 + 6);
+    for(let i=0;i<full;i++){
+      const pp = new Piece(S_R, S_H);
+      pp.group.position.set(base.x + gap*(created++), base.y, base.z);
+    }
+    if(rem > EPS){
+      const rSmall = Math.sqrt((rem*S_VOL)/S_H);
+      const pp = new Piece(rSmall, S_H);
+      pp.group.position.set(base.x + gap*(created++), base.y, base.z);
+    }
+    status(`합치기 완료: 총 ${totalS.toFixed(3)}S → ${full>0?full+'S':''}${full>0&&rem>EPS?' + ':''}${rem>EPS?rem.toFixed(3)+'S':''}`);
+    pushHistory('combine');
+  }
+
+  document.getElementById('clearSelBtn')?.addEventListener('click', clearSelection);
+  document.getElementById('combineBtn')?.addEventListener('click', combineSelected);
+
+  function layoutPieces(){
+    let i=0; const cols = 3; const gap = cm2w(40);
+    pizzas.forEach(p=>{
+      const r = Math.floor(i/cols), c = i%cols;
+      p.group.position.set(-cm2w(120) + c*gap, cm2w(S_H/2), -cm2w(80) + r*gap); i++;
+    });
+  }
+  function layoutMolds(){
+    const cols = 3, gap = cm2w(80);
+    molds.forEach((m,i)=>{
+      const r = Math.floor(i/cols), c = i%cols;
+      m.group.position.set(cm2w(70) + c*gap, 0, -cm2w(60) + r*gap);
+    });
+  }
+  function layoutAll(){ layoutPieces(); layoutMolds(); }
+  layoutAll();
+  </script>
+</body>
+</html>
