@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직선 위치 관계 탐구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        #container {
+            background-color: #1a202c;
+            border-radius: 0.5rem;
+            cursor: default;
+        }
+        .btn {
+            @apply bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75 transition-all duration-200 w-full;
+        }
+        .btn-secondary {
+            @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .slider-container label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            min-width: 60px;
+        }
+        .slider-container input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #4a5568;
+            border-radius: 5px;
+            outline: none;
+        }
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4fd1c5;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-6xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-300">3차원 공간에서 두 직선의 위치 관계</h1>
+            <p class="text-lg text-gray-400 mt-2">직육면체의 꼭짓점을 선택하여 두 직선을 그려보세요!</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 3D Canvas -->
+            <div class="flex-grow">
+                <div id="container" style="width: 100%; height: 600px;"></div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="w-full lg:w-80 bg-gray-800 p-6 rounded-lg shadow-xl flex-shrink-0 flex flex-col justify-between min-h-[600px]">
+                <!-- Step 0 -->
+                <div id="step-0" class="space-y-4 text-center">
+                    <p class="text-lg">3차원 공간에서 두 직선은 어떤 위치 관계를 가질까요?</p>
+                    <p class="text-gray-400 text-sm">직육면체의 모양을 조정한 후, 파란 직선을 그려보세요.</p>
+                    <div class="space-y-3 mt-4">
+                        <div class="slider-container">
+                            <label for="width-slider">너비: <span id="width-value" class="text-teal-300">10</span></label>
+                            <input type="range" id="width-slider" min="5" max="20" value="10" step="1">
+                        </div>
+                        <div class="slider-container">
+                            <label for="height-slider">높이: <span id="height-value" class="text-teal-300">10</span></label>
+                            <input type="range" id="height-slider" min="5" max="20" value="10" step="1">
+                        </div>
+                        <div class="slider-container">
+                            <label for="depth-slider">깊이: <span id="depth-value" class="text-teal-300">10</span></label>
+                            <input type="range" id="depth-slider" min="5" max="20" value="10" step="1">
+                        </div>
+                    </div>
+                    <button id="next-btn-0" class="btn mt-4">파란 직선 그리기</button>
+                </div>
+
+                <!-- Step 1 -->
+                <div id="step-1" class="hidden space-y-4 text-center">
+                    <p class="text-lg">파란 직선의 시작점과 끝점을 선택하세요.</p>
+                    <p class="text-gray-400 text-sm">직육면체의 꼭짓점을 클릭하세요.</p>
+                    <p id="blue-status" class="text-teal-300 font-semibold mt-2">시작점을 선택하세요</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div id="step-2" class="hidden space-y-4 text-center">
+                    <p class="text-lg">파란 직선이 그려졌습니다!</p>
+                    <p class="text-gray-400">이제 빨간 직선을 그려볼까요?</p>
+                    <button id="next-btn-2" class="btn mt-4">빨간 직선 그리기</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-2" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div id="step-3" class="hidden space-y-4 text-center">
+                    <p class="text-lg">빨간 직선의 시작점과 끝점을 선택하세요.</p>
+                    <p class="text-gray-400 text-sm">직육면체의 꼭짓점을 클릭하세요.</p>
+                    <p id="red-status" class="text-pink-300 font-semibold mt-2">시작점을 선택하세요</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div id="step-4" class="hidden space-y-4 text-center">
+                    <p class="text-lg">두 직선이 모두 그려졌습니다!</p>
+                    <p class="text-gray-400">이제 두 직선의 관계를 탐구해봅시다.</p>
+                    <button id="next-btn-4" class="btn mt-4">관계 탐구하기</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-4" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div id="step-5" class="hidden space-y-4 text-center">
+                    <p class="text-lg">질문 1: 두 직선이 만나나요?</p>
+                    <p class="text-gray-400 text-sm">3차원 공간을 회전하여 관찰해보세요.</p>
+                    <div class="flex gap-2 mt-4">
+                        <button id="answer-yes-1" class="btn flex-1">예</button>
+                        <button id="answer-no-1" class="btn btn-secondary flex-1">아니오</button>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-5" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div id="step-6" class="hidden space-y-4 text-center">
+                    <p class="text-lg">질문 2: 두 직선이 평행한가요?</p>
+                    <p class="text-gray-400 text-sm">(한 평면 위에 있나요?)</p>
+                    <div class="flex gap-2 mt-4">
+                        <button id="answer-yes-2" class="btn flex-1">예</button>
+                        <button id="answer-no-2" class="btn btn-secondary flex-1">아니오</button>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-6" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div id="step-7" class="hidden space-y-4 text-center">
+                    <p class="text-lg text-teal-300 font-bold">결과를 확인해봅시다!</p>
+                    <button id="show-result-btn" class="btn mt-4">평면 표시하기</button>
+                    <div id="result-display" class="hidden mt-4 p-4 bg-gray-700 rounded-lg">
+                        <p id="result-text" class="text-lg font-semibold"></p>
+                        <p id="result-detail" class="text-gray-300 text-sm mt-2"></p>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button id="restart-btn" class="btn btn-secondary flex-1">처음부터</button>
+                        <button id="prev-btn-7" class="btn btn-secondary flex-1">이전으로</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        { "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        let scene, camera, renderer, controls, raycaster, cuboidMesh;
+        const mouse = new THREE.Vector2();
+        
+        let bluePoints = [], redPoints = [], blueLine, redLine;
+        let lineRelationship = 'none';
+        let checkPlaneMesh;
+        const pointMarkers = new THREE.Group();
+        const EPSILON = 1e-5;
+
+        const container = document.getElementById('container');
+        const steps = Array.from({length: 8}, (_, i) => document.getElementById(`step-${i}`));
+        let currentStep = 0;
+
+        const widthSlider = document.getElementById('width-slider');
+        const heightSlider = document.getElementById('height-slider');
+        const depthSlider = document.getElementById('depth-slider');
+        const widthValue = document.getElementById('width-value');
+        const heightValue = document.getElementById('height-value');
+        const depthValue = document.getElementById('depth-value');
+
+        function setStep(stepIndex) {
+            currentStep = stepIndex;
+            steps.forEach((step, index) => {
+                step.classList.toggle('hidden', index !== stepIndex);
+            });
+            
+            if (stepIndex === 1) {
+                container.style.cursor = 'crosshair';
+                document.getElementById('blue-status').textContent = '시작점을 선택하세요';
+            } else if (stepIndex === 3) {
+                container.style.cursor = 'crosshair';
+                document.getElementById('red-status').textContent = '시작점을 선택하세요';
+            } else {
+                container.style.cursor = 'default';
+            }
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a202c);
+            scene.add(pointMarkers);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(20, 20, 30);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(30, 40, 25);
+            light.castShadow = true;
+            light.shadow.mapSize.set(2048, 2048);
+            scene.add(light);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const plane = new THREE.Mesh(
+                new THREE.PlaneGeometry(200, 200),
+                new THREE.MeshStandardMaterial({ color: 0x2d3748 })
+            );
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -0.1;
+            plane.receiveShadow = true;
+            scene.add(plane);
+            
+            raycaster = new THREE.Raycaster();
+
+            [widthSlider, heightSlider, depthSlider].forEach(s => s.addEventListener('input', updateCuboid));
+            
+            document.getElementById('next-btn-0').addEventListener('click', () => setStep(1));
+            document.getElementById('next-btn-2').addEventListener('click', () => setStep(3));
+            document.getElementById('next-btn-4').addEventListener('click', () => setStep(5));
+            
+            document.getElementById('prev-btn-2').addEventListener('click', () => { resetLines('red'); setStep(0); });
+            document.getElementById('prev-btn-4').addEventListener('click', () => { resetLines('blue'); setStep(2); });
+            document.getElementById('prev-btn-5').addEventListener('click', () => setStep(4));
+            document.getElementById('prev-btn-6').addEventListener('click', () => setStep(5));
+            document.getElementById('prev-btn-7').addEventListener('click', () => setStep(6));
+            
+            document.getElementById('answer-yes-1').addEventListener('click', () => setStep(6));
+            document.getElementById('answer-no-1').addEventListener('click', () => setStep(6));
+            document.getElementById('answer-yes-2').addEventListener('click', () => { calculateRelationship(); setStep(7); });
+            document.getElementById('answer-no-2').addEventListener('click', () => { calculateRelationship(); setStep(7); });
+            
+            document.getElementById('show-result-btn').addEventListener('click', showResult);
+            document.getElementById('restart-btn').addEventListener('click', restart);
+            
+            container.addEventListener('mousedown', onCanvasClick);
+            window.addEventListener('resize', onWindowResize);
+
+            updateCuboid();
+            animate();
+        }
+
+        function updateCuboid() {
+            widthValue.textContent = widthSlider.value;
+            heightValue.textContent = heightSlider.value;
+            depthValue.textContent = depthSlider.value;
+
+            if (cuboidMesh) scene.remove(cuboidMesh.parent);
+            
+            const [width, height, depth] = [parseInt(widthSlider.value), parseInt(heightSlider.value), parseInt(depthSlider.value)];
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshStandardMaterial({ color: 0x4a5568, transparent: true, opacity: 0.4 });
+            cuboidMesh = new THREE.Mesh(geometry, material);
+            cuboidMesh.castShadow = true;
+            
+            const wireframe = new THREE.LineSegments(
+                new THREE.EdgesGeometry(geometry),
+                new THREE.LineBasicMaterial({ color: 0x718096, linewidth: 2 })
+            );
+            
+            const cuboidGroup = new THREE.Group();
+            cuboidGroup.add(cuboidMesh, wireframe);
+            cuboidGroup.position.y = height / 2;
+            scene.add(cuboidGroup);
+        }
+        
+        function onCanvasClick(event) {
+            if (currentStep !== 1 && currentStep !== 3) return;
+            if (!cuboidMesh) return;
+
+            const rect = container.getBoundingClientRect();
+            mouse.set(
+                ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                -((event.clientY - rect.top) / rect.height) * 2 + 1
+            );
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(cuboidMesh);
+
+            if (intersects.length > 0) {
+                const localPoint = cuboidMesh.worldToLocal(intersects[0].point.clone());
+                const nearestVertexLocal = findNearestVertex(localPoint, cuboidMesh.geometry);
+                const worldVertex = cuboidMesh.localToWorld(nearestVertexLocal.clone());
+
+                if (currentStep === 1) {
+                    handleBluePoint(worldVertex);
+                } else if (currentStep === 3) {
+                    handleRedPoint(worldVertex);
+                }
+            }
+        }
+
+        function handleBluePoint(point) {
+            if (bluePoints.length === 1 && bluePoints[0].distanceTo(point) < EPSILON) return;
+            
+            bluePoints.push(point);
+            drawLines();
+            
+            if (bluePoints.length === 1) {
+                document.getElementById('blue-status').textContent = '끝점을 선택하세요';
+            } else if (bluePoints.length === 2) {
+                setStep(2);
+            }
+        }
+
+        function handleRedPoint(point) {
+            if (redPoints.length === 1 && redPoints[0].distanceTo(point) < EPSILON) return;
+            
+            redPoints.push(point);
+            drawLines();
+            
+            if (redPoints.length === 1) {
+                document.getElementById('red-status').textContent = '끝점을 선택하세요';
+            } else if (redPoints.length === 2) {
+                setStep(4);
+            }
+        }
+        
+        function findNearestVertex(point, geometry) {
+            const vertices = geometry.attributes.position;
+            let nearest = new THREE.Vector3();
+            let minDistanceSq = Infinity;
+            for (let i = 0; i < vertices.count; i++) {
+                const v = new THREE.Vector3().fromBufferAttribute(vertices, i);
+                const distSq = point.distanceToSquared(v);
+                if (distSq < minDistanceSq) {
+                    minDistanceSq = distSq;
+                    nearest.copy(v);
+                }
+            }
+            return nearest;
+        }
+
+        function drawLines() {
+            if (blueLine) scene.remove(blueLine);
+            if (redLine) scene.remove(redLine);
+            pointMarkers.clear();
+
+            const sphereGeom = new THREE.SphereGeometry(0.3, 16, 16);
+            
+            if (bluePoints.length > 0) {
+                bluePoints.forEach(p => {
+                    const marker = new THREE.Mesh(sphereGeom, new THREE.MeshBasicMaterial({ color: 0x4fd1c5 }));
+                    marker.position.copy(p);
+                    pointMarkers.add(marker);
+                });
+                if (bluePoints.length === 2) {
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints(bluePoints),
+                        new THREE.LineBasicMaterial({ color: 0x4fd1c5, linewidth: 3 })
+                    );
+                    blueLine = line;
+                    scene.add(line);
+                }
+            }
+            
+            if (redPoints.length > 0) {
+                redPoints.forEach(p => {
+                    const marker = new THREE.Mesh(sphereGeom, new THREE.MeshBasicMaterial({ color: 0xf687b3 }));
+                    marker.position.copy(p);
+                    pointMarkers.add(marker);
+                });
+                if (redPoints.length === 2) {
+                    const line = new THREE.Line(
+                        new THREE.BufferGeometry().setFromPoints(redPoints),
+                        new THREE.LineBasicMaterial({ color: 0xf687b3, linewidth: 3 })
+                    );
+                    redLine = line;
+                    scene.add(line);
+                }
+            }
+        }
+        
+        function calculateRelationship() {
+            const vBlue = new THREE.Vector3().subVectors(bluePoints[1], bluePoints[0]).normalize();
+            const vRed = new THREE.Vector3().subVectors(redPoints[1], redPoints[0]).normalize();
+            const cross = new THREE.Vector3().crossVectors(vBlue, vRed);
+            const p1q1 = new THREE.Vector3().subVectors(redPoints[0], bluePoints[0]);
+
+            if (cross.lengthSq() < EPSILON) {
+                lineRelationship = 'parallel';
+            } else if (Math.abs(p1q1.dot(cross)) < EPSILON) {
+                lineRelationship = 'intersecting';
+            } else {
+                lineRelationship = 'skew';
+            }
+        }
+
+        function showResult() {
+            document.getElementById('result-display').classList.remove('hidden');
+            const resultText = document.getElementById('result-text');
+            const resultDetail = document.getElementById('result-detail');
+            
+            if (lineRelationship === 'skew') {
+                resultText.textContent = '두 직선은 꼬인 위치에 있습니다!';
+                resultText.className = 'text-lg font-semibold text-pink-300';
+                resultDetail.textContent = '두 직선은 만나지도 않고, 평행하지도 않으며, 한 평면 위에 있지 않습니다.';
+            } else {
+                resultText.textContent = '두 직선은 한 평면 위에 있습니다!';
+                resultText.className = 'text-lg font-semibold text-teal-300';
+                resultDetail.textContent = lineRelationship === 'parallel' 
+                    ? '두 직선은 평행합니다.' 
+                    : '두 직선은 한 점에서 만납니다.';
+                createAndShowPlane();
+            }
+        }
+        
+        function createAndShowPlane() {
+            if (checkPlaneMesh) scene.remove(checkPlaneMesh);
+
+            const [p1, p2, q1] = [bluePoints[0], bluePoints[1], redPoints[0]];
+            const v1 = new THREE.Vector3().subVectors(p2, p1);
+            let v2;
+            
+            if(lineRelationship === 'parallel') {
+                v2 = new THREE.Vector3().subVectors(q1, p1);
+            } else {
+                v2 = new THREE.Vector3().subVectors(redPoints[1], redPoints[0]);
+            }
+
+            const normal = new THREE.Vector3().crossVectors(v1, v2).normalize();
+            const center = new THREE.Vector3().add(p1).add(p2).add(q1).divideScalar(3);
+            
+            const planeGeom = new THREE.PlaneGeometry(50, 50);
+            const planeMat = new THREE.MeshStandardMaterial({
+                color: 0x4fd1c5, opacity: 0.3, transparent: true, side: THREE.DoubleSide
+            });
+            checkPlaneMesh = new THREE.Mesh(planeGeom, planeMat);
+            
+            checkPlaneMesh.position.copy(center);
+            checkPlaneMesh.lookAt(center.clone().add(normal));
+            scene.add(checkPlaneMesh);
+        }
+
+        function resetLines(modeToKeep) {
+            if(modeToKeep !== 'blue' && blueLine) {
+                scene.remove(blueLine);
+                bluePoints = [];
+            }
+            if(modeToKeep !== 'red' && redLine) {
+                scene.remove(redLine);
+                redPoints = [];
+            }
+            if(checkPlaneMesh) {
+                scene.remove(checkPlaneMesh);
+                checkPlaneMesh = null;
+            }
+            pointMarkers.clear();
+            document.getElementById('result-display').classList.add('hidden');
+        }
+        
+        function restart() {
+            resetLines();
+            lineRelationship = 'none';
+            setStep(0);
+        }
+
+        function onWindowResize() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
