@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>두 직선의 위치관계 탐구 (단계별 학습)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+        #container-wrapper {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+        }
+        #container { 
+            width: 100%; height: 100%;
+            background-color: #1a202c;
+            cursor: default; 
+        }
+        
+        #activity-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(31, 41, 55, 0.9);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            max-width: 440px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+        
+        #activity-panel::-webkit-scrollbar { width: 6px; }
+        #activity-panel::-webkit-scrollbar-track { background: transparent; }
+        #activity-panel::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+
+        .step-container { display: none; }
+        .step-container.active { display: block; }
+        
+        .relationship-card {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+        
+        .relationship-title { color: #e5e7eb; }
+        .relationship-desc { color: #9ca3af; line-height: 1.6; }
+        
+        .frayer-cell { background: #4b5563; border-color: #6b7280; border-radius: 8px; padding: 0.75rem; }
+        .frayer-cell label { color: #d1d5db; font-weight: 700; font-size: 0.8rem; }
+        textarea { 
+            background-color: #374151;
+            border-color: #6b7280;
+            color: #f3f4f6;
+            margin-top: 0.25rem;
+            min-height: 60px;
+        }
+        textarea::placeholder { color: #9ca3af; }
+
+        .check-panel {
+             background-color: #374151;
+             border: 1px solid #4b5563;
+             border-radius: 10px;
+             padding: 1.25rem;
+        }
+        .check-panel h3 { color: #e5e7eb; }
+        .check-section p { color: #d1d5db; }
+        
+        .check-btn { 
+            border-color: #6b7280;
+            background: #4b5563;
+            color: #f3f4f6;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .check-btn:hover { border-color: #2dd4bf; background: #374151; }
+        .check-btn.selected { border-color: #2dd4bf; background: #14b8a6; color: white; }
+        
+        .check-result.correct { background: #10B981; color: white; border: none; padding: 0.75rem; }
+        .check-result.incorrect { background: #EF4444; color: white; border: none; padding: 0.75rem; }
+
+        .btn {
+            font-weight: 600; padding: 0.75rem 1rem; border-radius: 8px; border: none; cursor: pointer;
+            transition: all 0.2s; text-align: center; flex-grow: 1;
+        }
+        .btn-primary { background: #14b8a6; color: white; }
+        .btn-primary:hover { background: #0d9488; }
+        .btn-secondary { background: #4b5563; color: #f3f4f6; }
+        .btn-secondary:hover { background: #6b7280; }
+        .btn:disabled { background: #4b5563; color: #9ca3af; cursor: not-allowed; }
+        
+        .navigation-buttons { border-top-color: #4b5563; }
+
+        .hidden { display: none; }
+
+        .summary-box {
+            background-color: #1a202c;
+            border: 1px solid #14b8a6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #e5e7eb;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .summary-box strong { color: #2dd4bf; }
+    </style>
+</head>
+<body>
+    <div id="container-wrapper"><div id="container"></div></div>
+    
+    <div id="activity-panel">
+        <!-- Step 0: 한 점에서 만남 -->
+        <div id="step-0" class="step-container">
+            <div class="flex items-center mb-4"><span class="text-2xl mr-3">🔴</span><span class="text-xl font-bold relationship-title">1단계: 한 점에서 만남</span></div>
+            
+            <div class="check-panel">
+                 <h3 class="text-lg font-bold mb-2">🔍 탐구해보기</h3>
+                 <p class="text-sm text-gray-400 mb-4">오른쪽 3D 모델을 관찰하고 아래 질문에 답해보세요.</p>
+                <div class="check-section mb-4"><p>만남 여부</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="meet" data-value="yes">만난다</button><button class="check-btn" data-check="meet" data-value="no">만나지 않는다</button></div><div class="check-result mt-3"></div></div>
+                <div class="check-section"><p>평면 위치</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="plane" data-value="yes">한 평면에 있다</button><button class="check-btn" data-check="plane" data-value="no">한 평면에 있지 않다</button></div><div class="check-result mt-3"></div></div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                 <button id="find-intersection-btn" class="btn btn-secondary">교점 찾기</button>
+                 <button id="show-plane-btn-0" class="btn btn-secondary">평면 표시</button>
+            </div>
+
+            <div class="conclusion-section hidden mt-6">
+                <div class="summary-box"></div>
+                <div class="relationship-card">
+                    <h3 class="text-lg font-bold mb-4">📝 개념 정리하기</h3>
+                    <div class="grid grid-cols-2 gap-3 frayer-grid">
+                        <div class="frayer-cell"><label>정의</label><textarea placeholder="가위의 두 날처럼, 한 점에서만 스치는 직선"></textarea></div>
+                        <div class="frayer-cell"><label>성질/특성</label><textarea placeholder="만나는 점(교점)이 딱 하나 생겨요."></textarea></div>
+                        <div class="frayer-cell"><label>예</label><textarea placeholder="사거리 도로, X자로 놓은 젓가락 한 쌍"></textarea></div>
+                        <div class="frayer-cell"><label>예가 아닌 것</label><textarea placeholder="나란한 기찻길, 서로 다른 층의 복도"></textarea></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t navigation-buttons">
+                <button id="next-btn-0" class="btn btn-primary w-full hidden">다음 단계로</button>
+            </div>
+        </div>
+
+        <!-- Step 1: 일치 -->
+        <div id="step-1" class="step-container">
+            <div class="flex items-center mb-4"><span class="text-2xl mr-3">🟠</span><span class="text-xl font-bold relationship-title">2단계: 일치</span></div>
+            <div class="check-panel">
+                <h3 class="text-lg font-bold mb-2">🔍 탐구해보기</h3>
+                <p class="text-sm text-gray-400 mb-4">오른쪽 3D 모델을 관찰하고 아래 질문에 답해보세요.</p>
+                <div class="check-section mb-4"><p>만남 여부</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="meet" data-value="yes">만난다</button><button class="check-btn" data-check="meet" data-value="no">만나지 않는다</button></div><div class="check-result mt-3"></div></div>
+                <div class="check-section"><p>평면 위치</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="plane" data-value="yes">한 평면에 있다</button><button class="check-btn" data-check="plane" data-value="no">한 평면에 있지 않다</button></div><div class="check-result mt-3"></div></div>
+            </div>
+            <div class="flex gap-3 mt-4"><button id="show-plane-btn-1" class="btn btn-secondary w-full">평면 표시</button></div>
+            <div class="conclusion-section hidden mt-6">
+                <div class="summary-box"></div>
+                <div class="relationship-card">
+                    <h3 class="text-lg font-bold mb-4">📝 개념 정리하기</h3>
+                    <div class="grid grid-cols-2 gap-3 frayer-grid">
+                        <div class="frayer-cell"><label>정의</label><textarea placeholder="두 개의 자를 완전히 포개 놓은 것처럼 똑같은 직선"></textarea></div>
+                        <div class="frayer-cell"><label>성질/특성</label><textarea placeholder="모든 점에서 만나서 교점이 무한히 많아요."></textarea></div>
+                        <div class="frayer-cell"><label>예</label><textarea placeholder="같은 길을 다니는 2개의 버스 노선"></textarea></div>
+                        <div class="frayer-cell"><label>예가 아닌 것</label><textarea placeholder="서로 다른 방향으로 뻗은 도로"></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t navigation-buttons"><button id="prev-btn-1" class="btn btn-secondary">이전으로</button><button id="next-btn-1" class="btn btn-primary hidden">다음 단계로</button></div>
+        </div>
+
+        <!-- Step 2: 평행 -->
+        <div id="step-2" class="step-container">
+            <div class="flex items-center mb-4"><span class="text-2xl mr-3">🟢</span><span class="text-xl font-bold relationship-title">3단계: 평행</span></div>
+            <div class="check-panel">
+                <h3 class="text-lg font-bold mb-2">🔍 탐구해보기</h3>
+                <p class="text-sm text-gray-400 mb-4">오른쪽 3D 모델을 관찰하고 아래 질문에 답해보세요.</p>
+                <div class="check-section mb-4"><p>만남 여부</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="meet" data-value="yes">만난다</button><button class="check-btn" data-check="meet" data-value="no">만나지 않는다</button></div><div class="check-result mt-3"></div></div>
+                <div class="check-section"><p>평면 위치</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="plane" data-value="yes">한 평면에 있다</button><button class="check-btn" data-check="plane" data-value="no">한 평면에 있지 않다</button></div><div class="check-result mt-3"></div></div>
+            </div>
+            <div class="flex gap-3 mt-4"><button id="show-plane-btn-2" class="btn btn-secondary w-full">평면 표시</button></div>
+            <div class="conclusion-section hidden mt-6">
+                <div class="summary-box"></div>
+                <div class="relationship-card">
+                    <h3 class="text-lg font-bold mb-4">📝 개념 정리하기</h3>
+                    <div class="grid grid-cols-2 gap-3 frayer-grid">
+                        <div class="frayer-cell"><label>정의</label><textarea placeholder="기찻길의 두 철로처럼, 나란히 뻗어가는 직선"></textarea></div>
+                        <div class="frayer-cell"><label>성질/특성</label><textarea placeholder="절대 만나지 않고, 둘 사이 간격이 항상 같아요."></textarea></div>
+                        <div class="frayer-cell"><label>예</label><textarea placeholder="고속도로의 차선, 칠판의 위아래 가장자리"></textarea></div>
+                        <div class="frayer-cell"><label>예가 아닌 것</label><textarea placeholder="사거리 도로, 가위의 두 날"></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t navigation-buttons"><button id="prev-btn-2" class="btn btn-secondary">이전으로</button><button id="next-btn-2" class="btn btn-primary hidden">다음 단계로</button></div>
+        </div>
+
+        <!-- Step 3: 꼬인 위치 -->
+        <div id="step-3" class="step-container">
+            <div class="flex items-center mb-4"><span class="text-2xl mr-3">🟣</span><span class="text-xl font-bold relationship-title">4단계: 꼬인 위치</span></div>
+            <div class="check-panel">
+                 <h3 class="text-lg font-bold mb-2">🔍 탐구해보기</h3>
+                 <p class="text-sm text-gray-400 mb-4">오른쪽 3D 모델을 관찰하고 아래 질문에 답해보세요.</p>
+                <div class="check-section mb-4"><p>만남 여부</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="meet" data-value="yes">만난다</button><button class="check-btn" data-check="meet" data-value="no">만나지 않는다</button></div><div class="check-result mt-3"></div></div>
+                <div class="check-section"><p>평면 위치</p><div class="grid grid-cols-2 gap-2 check-btn-group"><button class="check-btn" data-check="plane" data-value="yes">한 평면에 있다</button><button class="check-btn" data-check="plane" data-value="no">한 평면에 있지 않다</button></div><div class="check-result mt-3"></div></div>
+            </div>
+            <div class="flex gap-3 mt-4"><button id="show-plane-btn-3" class="btn btn-secondary w-full" disabled title="꼬인 위치는 한 평면에 있지 않습니다.">평면 표시 불가</button></div>
+            <div class="conclusion-section hidden mt-6">
+                 <div class="summary-box"></div>
+                <div class="relationship-card">
+                    <h3 class="text-lg font-bold mb-4">📝 개념 정리하기</h3>
+                    <div class="grid grid-cols-2 gap-3 frayer-grid">
+                        <div class="frayer-cell"><label>정의</label><textarea placeholder="만나지도, 나란하지도 않은 신기한 관계"></textarea></div>
+                        <div class="frayer-cell"><label>성질/특성</label><textarea placeholder="서로 다른 공간에 있어서 만나지도, 평행하지도 않아요."></textarea></div>
+                        <div class="frayer-cell"><label>예</label><textarea placeholder="고가도로와 그 아래를 지나는 길"></textarea></div>
+                        <div class="frayer-cell"><label>예가 아닌 것</label><textarea placeholder="책상 위에 그려진 모든 직선들"></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t navigation-buttons"><button id="prev-btn-3" class="btn btn-secondary">이전으로</button><button id="next-btn-3" class="btn btn-primary hidden">처음으로</button></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let line1, line2, planeMesh, intersectionPoint;
+        let currentStep = 0;
+        const stepTypes = ['intersect', 'coincide', 'parallel', 'skew'];
+        
+        const container = document.getElementById('container');
+        
+        const answers = {
+            intersect: { meet: 'yes', plane: 'yes', summary: "맞아요! 두 직선은 <strong>한 점에서 만나고</strong>, <strong>한 평면 위에</strong> 있습니다." },
+            coincide: { meet: 'yes', plane: 'yes', summary: "정답입니다! 두 직선은 <strong>모든 점에서 만나므로(일치)</strong>, 당연히 <strong>한 평면 위에</strong> 있습니다." },
+            parallel: { meet: 'no', plane: 'yes', summary: "훌륭해요! 두 직선은 <strong>만나지 않지만</strong>, <strong>한 평면 위에</strong> 나란히 있습니다." },
+            skew: { meet: 'no', plane: 'no', summary: "잘 찾았네요! 두 직선은 <strong>만나지도 않고</strong>, <strong>한 평면 위에 있지도</strong> 않은 '꼬인 위치'에 있습니다." }
+        };
+        
+        const colors = {
+            intersect: { line1: 0xef4444, line2: 0xf87171 },
+            coincide: { line1: 0xfb923c, line2: 0xfcd34d },
+            parallel: { line1: 0x10b981, line2: 0x34d399 },
+            skew: { line1: 0x8b5cf6, line2: 0xa78bfa }
+        };
+        
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a202c);
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(15, 15, 15);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(30, 40, 25);
+            scene.add(light);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            const grid = new THREE.GridHelper(40, 40, 0x4b5563, 0x374151);
+            scene.add(grid);
+            showStep(0);
+            window.addEventListener('resize', onResize);
+            animate();
+        }
+
+        function showStep(stepIndex) {
+            currentStep = stepIndex;
+            document.querySelectorAll('.step-container').forEach((el, index) => {
+                const isActive = index === stepIndex;
+                el.classList.toggle('active', isActive);
+                if (isActive) {
+                    // Reset the state for the current step
+                    el.querySelector('.conclusion-section').classList.add('hidden');
+                    el.querySelector('.check-panel').classList.remove('hidden');
+                    const nextBtn = el.querySelector('[id^="next-btn"]');
+                    if(nextBtn) nextBtn.classList.add('hidden');
+                    // Special case for step 1 and 2 prev button
+                    const prevBtn1 = document.getElementById('prev-btn-1');
+                    const nextBtn1 = document.getElementById('next-btn-1');
+                    if (prevBtn1 && nextBtn1) {
+                        nextBtn1.classList.add('hidden');
+                    }
+                     const prevBtn2 = document.getElementById('prev-btn-2');
+                    const nextBtn2 = document.getElementById('next-btn-2');
+                    if (prevBtn2 && nextBtn2) {
+                        nextBtn2.classList.add('hidden');
+                    }
+                     const prevBtn3 = document.getElementById('prev-btn-3');
+                    const nextBtn3 = document.getElementById('next-btn-3');
+                    if (prevBtn3 && nextBtn3) {
+                        nextBtn3.classList.add('hidden');
+                    }
+                }
+            });
+            showRelationship(stepTypes[stepIndex]);
+        }
+        
+        function createLineMesh(path, color, radius, materialProps = {}) {
+            const geometry = new THREE.TubeGeometry(path, 20, radius, 8, false);
+            const material = new THREE.MeshStandardMaterial({ color, ...materialProps });
+            return new THREE.Mesh(geometry, material);
+        }
+
+        function clearSceneObjects() {
+            if (line1) scene.remove(line1);
+            if (line2) scene.remove(line2);
+            if (planeMesh) scene.remove(planeMesh);
+            if (intersectionPoint) scene.remove(intersectionPoint);
+            planeMesh = null; intersectionPoint = null; line1 = null; line2 = null;
+        }
+
+        function showRelationship(type) {
+            clearSceneObjects();
+            resetCheckPanel(document.getElementById(`step-${stepTypes.indexOf(type)}`));
+            const color1 = colors[type].line1;
+            const color2 = colors[type].line2;
+            const path = new THREE.CatmullRomCurve3([new THREE.Vector3(-6, 3, 0), new THREE.Vector3(6, 3, 0)]);
+            if (type === 'intersect') {
+                const path1 = new THREE.CatmullRomCurve3([new THREE.Vector3(-5, 0, 0), new THREE.Vector3(5, 6, 0)]);
+                const path2 = new THREE.CatmullRomCurve3([new THREE.Vector3(-5, 6, 0), new THREE.Vector3(5, 0, 0)]);
+                line1 = createLineMesh(path1, color1, 0.15);
+                line2 = createLineMesh(path2, color2, 0.15);
+            } else if (type === 'coincide') {
+                line1 = createLineMesh(path, color1, 0.15);
+                line2 = createLineMesh(path, color2, 0.25, { transparent: true, opacity: 0.7 });
+            } else if (type === 'parallel') {
+                const path1 = new THREE.CatmullRomCurve3([new THREE.Vector3(-5, 2, 0), new THREE.Vector3(5, 2, 0)]);
+                const path2 = new THREE.CatmullRomCurve3([new THREE.Vector3(-5, 5, 0), new THREE.Vector3(5, 5, 0)]);
+                line1 = createLineMesh(path1, color1, 0.15);
+                line2 = createLineMesh(path2, color2, 0.15);
+            } else if (type === 'skew') {
+                const path1 = new THREE.CatmullRomCurve3([new THREE.Vector3(-5, 2, -3), new THREE.Vector3(5, 2, -3)]);
+                const path2 = new THREE.CatmullRomCurve3([new THREE.Vector3(-3, 0, 3), new THREE.Vector3(-3, 6, 3)]);
+                line1 = createLineMesh(path1, color1, 0.15);
+                line2 = createLineMesh(path2, color2, 0.15);
+            }
+            scene.add(line1);
+            if (line2) scene.add(line2);
+        }
+
+        function togglePlane() {
+            if (planeMesh) { scene.remove(planeMesh); planeMesh = null; return; }
+            const type = stepTypes[currentStep];
+            if (type === 'skew') return;
+            const planeGeom = new THREE.PlaneGeometry(22, 22);
+            const planeMat = new THREE.MeshStandardMaterial({ color: 0x047857, opacity: 0.5, transparent: true, side: THREE.DoubleSide });
+            planeMesh = new THREE.Mesh(planeGeom, planeMat);
+            if (type === 'intersect' || type === 'coincide') planeMesh.position.set(0, 3, 0);
+            else if (type === 'parallel') planeMesh.position.set(0, 3.5, 0);
+            scene.add(planeMesh);
+        }
+
+        function toggleIntersectionPoint() {
+             if (stepTypes[currentStep] !== 'intersect') return;
+             if (intersectionPoint) { scene.remove(intersectionPoint); intersectionPoint = null; return; }
+             const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+             const material = new THREE.MeshBasicMaterial({ color: 0xfde047 });
+             intersectionPoint = new THREE.Mesh(geometry, material);
+             intersectionPoint.position.set(0, 3, 0);
+             scene.add(intersectionPoint);
+        }
+
+        function resetCheckPanel(panel) {
+            panel.querySelectorAll('.check-btn').forEach(btn => btn.classList.remove('selected'));
+            panel.querySelectorAll('.check-result').forEach(result => {
+                result.classList.remove('show', 'correct', 'incorrect');
+                result.textContent = '';
+            });
+        }
+        
+        function checkAnswers(panel, type) {
+            const userAnswers = {};
+            panel.querySelectorAll('.check-btn.selected').forEach(btn => {
+                userAnswers[btn.dataset.check] = btn.dataset.value;
+            });
+            const correctAnswers = answers[type];
+            let isMeetCorrect = false, isPlaneCorrect = false;
+
+            const meetResult = panel.querySelector('[data-check="meet"]').closest('.check-section').querySelector('.check-result');
+            if(userAnswers.meet) {
+                meetResult.classList.add('show');
+                isMeetCorrect = userAnswers.meet === correctAnswers.meet;
+                meetResult.textContent = isMeetCorrect ? '✓ 정답입니다!' : '✗ 다시 생각해보세요.';
+                meetResult.className = `check-result show ${isMeetCorrect ? 'correct' : 'incorrect'}`;
+            }
+
+            const planeResult = panel.querySelector('[data-check="plane"]').closest('.check-section').querySelector('.check-result');
+             if(userAnswers.plane) {
+                planeResult.classList.add('show');
+                isPlaneCorrect = userAnswers.plane === correctAnswers.plane;
+                planeResult.textContent = isPlaneCorrect ? '✓ 정답입니다!' : '✗ 다시 생각해보세요.';
+                planeResult.className = `check-result show ${isPlaneCorrect ? 'correct' : 'incorrect'}`;
+            }
+
+            if(isMeetCorrect && isPlaneCorrect) {
+                setTimeout(() => {
+                    panel.querySelector('.check-panel').classList.add('hidden');
+                    const conclusion = panel.querySelector('.conclusion-section');
+                    conclusion.classList.remove('hidden');
+                    conclusion.querySelector('.summary-box').innerHTML = correctAnswers.summary;
+                    panel.querySelector('[id^="next-btn"]').classList.remove('hidden');
+                }, 800);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        document.getElementById('next-btn-0').addEventListener('click', () => showStep(1));
+        document.getElementById('prev-btn-1').addEventListener('click', () => showStep(0));
+        document.getElementById('next-btn-1').addEventListener('click', () => showStep(2));
+        document.getElementById('prev-btn-2').addEventListener('click', () => showStep(1));
+        document.getElementById('next-btn-2').addEventListener('click', () => showStep(3));
+        document.getElementById('prev-btn-3').addEventListener('click', () => showStep(2));
+        document.getElementById('next-btn-3').addEventListener('click', () => showStep(0));
+
+        document.getElementById('find-intersection-btn').addEventListener('click', toggleIntersectionPoint);
+        document.getElementById('show-plane-btn-0').addEventListener('click', togglePlane);
+        document.getElementById('show-plane-btn-1').addEventListener('click', togglePlane);
+        document.getElementById('show-plane-btn-2').addEventListener('click', togglePlane);
+
+        document.querySelectorAll('.check-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const checkType = this.dataset.check;
+                const parentPanel = this.closest('.step-container');
+                parentPanel.querySelectorAll(`[data-check="${checkType}"]`).forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                checkAnswers(parentPanel, stepTypes[currentStep]);
+            });
+        });
+
+        init3D();
+    </script>
+</body>
+</html>
+
