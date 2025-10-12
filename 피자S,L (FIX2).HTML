@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>피자 닮음비와 부피비 탐구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        #scene-container {
+            background-color: #1a202c;
+            border-radius: 0.5rem;
+            cursor: grab;
+        }
+        #scene-container:active {
+            cursor: grabbing;
+        }
+        .btn {
+            @apply bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 transition-all duration-200 w-full disabled:bg-gray-500 disabled:cursor-not-allowed;
+        }
+        .btn-secondary {
+            @apply bg-gray-600 hover:bg-gray-700;
+        }
+        input[type="number"], input[type="text"], textarea {
+            @apply w-full px-4 py-2 text-xl text-center border-2 border-gray-600 rounded-lg font-bold focus:outline-none focus:border-teal-400;
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+        textarea {
+            @apply text-base;
+        }
+        .highlight {
+            @apply text-teal-300 font-bold;
+        }
+        .formula-box {
+            @apply bg-gray-700 p-4 rounded-lg my-3;
+        }
+        /* Custom animation for revealing content */
+        .reveal {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-300">🍕 피자, 얼마나 많이 담을 수 있을까?</h1>
+            <p class="text-lg text-gray-400 mt-2">닮음비와 부피비의 비밀을 파헤쳐 봐요!</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 3D Visualization -->
+            <div class="flex-grow">
+                <div id="scene-container" class="w-full h-96 lg:h-[500px]"></div>
+                <p class="text-center text-xs text-gray-500 mt-2">마우스로 드래그해 회전하고, 스크롤로 확대/축소해 보세요.</p>
+            </div>
+
+            <!-- Interactive Panel -->
+            <div class="w-full lg:w-96 bg-gray-800 p-6 rounded-lg shadow-xl flex-shrink-0 flex flex-col justify-center">
+                
+                <!-- STEP 0: 닮음비 질문 -->
+                <div id="step-0" class="space-y-4">
+                    <p class="text-xl text-teal-300 font-bold text-center">질문 1.</p>
+                    <p class="text-lg text-center">두 피자가 닮은 원기둥 모양일 때,<br> <span class="highlight">닮음비</span>는 어떻게 될까요?</p>
+                    <div class="bg-gray-700 p-4 rounded-lg space-y-3">
+                        <div>
+                            <div class="text-pink-300 font-bold">S 사이즈 피자</div>
+                            <div class="text-gray-300 text-sm">지름 20cm, 높이 2cm</div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="text-yellow-300 font-bold">L 사이즈 피자</div>
+                            <div class="text-gray-300 text-sm">지름 30cm, 높이 ?cm</div>
+                        </div>
+                    </div>
+                    <div id="ratio-input-container">
+                        <input type="text" id="ratio-input" placeholder="정답을 'A:B' 형식으로 입력">
+                    </div>
+                    <div id="answer-feedback-0" class="hidden text-center p-3 rounded-lg"></div>
+                    <button id="check-ratio-btn" class="btn">정답 제출</button>
+                    <button id="next-btn-0" class="btn hidden">다음 질문으로</button>
+                </div>
+
+                <!-- STEP 1: 양 추측하기 -->
+                <div id="step-1" class="hidden space-y-4">
+                    <p class="text-xl text-teal-300 font-bold text-center">질문 2.</p>
+                    <p class="text-lg text-center">L피자 한 판은<br>S피자 <span class="highlight">몇 판</span>의 양과 같을까요?</p>
+                    <p class="text-sm text-gray-400 text-center">대략적으로 추측해서 숫자를 입력해보세요.</p>
+                    <div class="flex items-center justify-center gap-3 my-4">
+                        <input type="number" id="guessInput" class="w-40 text-2xl" min="1" max="10" step="0.1" placeholder="예: 2.5">
+                    </div>
+                    <button id="next-btn-1" class="btn">추측한 양으로 실험하기</button>
+                </div>
+
+                <!-- STEP 2: 실험 결과 및 다음 질문 -->
+                <div id="step-2" class="hidden space-y-4">
+                    <p class="text-xl text-teal-300 font-bold text-center">🧪 실험 결과</p>
+                    <div id="status" class="text-center p-4 bg-gray-700 rounded-lg text-gray-300">
+                        <!-- Status message will be inserted here by JS -->
+                    </div>
+                     <p class="text-lg text-center mt-4">3과 4 사이의 값인 것 같은데...<br>이 숫자를 <span class="highlight">정확히</span> 구할 수 있을까요?</p>
+                    <div class="formula-box text-center">
+                        <p class="text-sm text-gray-400">피자의 '양'은 무엇과 관련 있을까요?</p>
+                         <p class="text-lg mt-1">(힌트: 도형의 <span class="highlight">부피</span>)</p>
+                    </div>
+                    <div class="flex justify-between gap-2">
+                        <button id="prev-btn-2" class="btn btn-secondary">다시 추측</button>
+                        <button id="next-btn-2" class="btn" disabled>정확한 S피자 개수 구하려면?</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: 부피비 계산 -->
+                <div id="step-3" class="hidden space-y-4">
+                    <p class="text-xl text-teal-300 font-bold text-center">💡 원리 발견: 부피비</p>
+                    <div class="text-gray-200 space-y-2 text-sm">
+                        <div class="formula-box">
+                            <p>닮음비가 <span class="highlight text-lg">2 : 3</span> 이므로,</p>
+                        </div>
+                        <div class="formula-box bg-teal-900 reveal">
+                            <p class="mb-2">부피비는 각 숫자를 <span class="highlight">세제곱</span>한 값과 같아요.</p>
+                            <p class="text-xl highlight mt-1 text-center">2³ : 3³</p>
+                            <p class="text-2xl highlight mt-1 text-center">= 8 : 27</p>
+                        </div>
+                        <p class="text-center text-gray-400 reveal" style="animation-delay: 0.5s;">즉, S피자 <span class="highlight">27판</span>의 양은 L피자 <span class="highlight">8판</span>의 양과 같습니다.</p>
+                    </div>
+                    <!-- New interactive part -->
+                    <div id="final-question-container" class="mt-4 space-y-3 reveal" style="animation-delay: 1s;">
+                        <p class="text-center text-gray-200">그럼 L피자 1판은 S피자 몇 판과 같을까요?</p>
+                        <input type="text" id="final-answer-input" placeholder="답 (소수 또는 분수)">
+                        <textarea id="reasoning-input" rows="2" placeholder="이유 (부피비가.. 니까..)"></textarea>
+                        <div id="answer-feedback-3" class="hidden text-center p-2 rounded-lg text-sm"></div>
+                        <button id="check-final-answer-btn" class="btn btn-secondary">답 확인하기</button>
+                    </div>
+                    <div class="flex justify-between gap-2 mt-4">
+                        <button id="prev-btn-3" class="btn btn-secondary">이전</button>
+                        <button id="next-btn-3" class="btn hidden">정확한 값 계산하기</button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: 최종 확인 -->
+                <div id="step-4" class="hidden space-y-4">
+                    <p class="text-xl text-teal-300 font-bold text-center">🎯 최종 확인</p>
+                    <div class="formula-box text-center">
+                        <p class="text-sm">S피자 27판 = L피자 8판</p>
+                        <p class="text-lg mt-2">L피자 1판 = S피자 <span class="highlight">27 / 8</span> 판</p>
+                        <p class="text-3xl highlight mt-2">3.375</p>
+                    </div>
+                     <p class="text-center text-sm text-gray-300">
+                        정확한 값 <span class="highlight">3.375</span>로 다시 실험해서<br>L피자가 가득 채워지는지 확인해보세요!
+                    </p>
+                    <button id="final-check-btn" class="btn">정확한 값으로 확인</button>
+                    <button id="restart-btn" class="btn btn-secondary mt-2">처음부터</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        const L_RADIUS = 1.5, L_HEIGHT = 0.3, S_RADIUS = 1.0, S_HEIGHT = 0.2;
+        const L_VOLUME = Math.PI * L_RADIUS * L_RADIUS * L_HEIGHT;
+        const S_VOLUME = Math.PI * S_RADIUS * S_RADIUS * S_HEIGHT;
+        const EXACT_COUNT = L_VOLUME / S_VOLUME; // 3.375
+
+        let scene, camera, renderer, controls, sPizza, lPizzaContainer, pizzaTexture, filledPizza = null;
+        const flyingPieces = [];
+        let currentStep = 0;
+        const steps = [0,1,2,3,4].map(i => document.getElementById(`step-${i}`));
+        const sceneContainer = document.getElementById('scene-container');
+        
+        let userGuess = 0;
+        let trialCount = 0;
+        let hasUnderflowed = false;
+        let hasOverflowed = false;
+
+        function setStep(i) {
+            currentStep = i;
+            steps.forEach((s, idx) => s.classList.toggle('hidden', idx !== i));
+            
+            if (i === 1) {
+                document.getElementById('guessInput').focus();
+            }
+            if (i === 2) {
+                checkButtonActivation();
+            }
+             if (i === 3) {
+                document.getElementById('next-btn-3').classList.add('hidden');
+                document.getElementById('check-final-answer-btn').classList.remove('hidden');
+                document.getElementById('answer-feedback-3').classList.add('hidden');
+                document.getElementById('final-answer-input').value = '';
+                document.getElementById('reasoning-input').value = '';
+            }
+        }
+
+        function checkButtonActivation() {
+            const nextBtn = document.getElementById('next-btn-2');
+            nextBtn.textContent = '정확한 S피자 개수 구하려면?';
+            const conditionMet = trialCount >= 5 || 
+                                 (hasUnderflowed && hasOverflowed) || 
+                                 (userGuess > 0 && Math.abs(userGuess - EXACT_COUNT) <= 0.1);
+
+            if (conditionMet) {
+                nextBtn.disabled = false;
+                nextBtn.classList.add('animate-pulse');
+            } else {
+                nextBtn.disabled = true;
+                nextBtn.classList.remove('animate-pulse');
+            }
+        }
+
+        // 3D Scene Initialization
+        function init3D() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a202c);
+            camera = new THREE.PerspectiveCamera(75, sceneContainer.clientWidth / sceneContainer.clientHeight, 0.1, 1000);
+            camera.position.set(0, 4.5, 5);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            sceneContainer.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const light = new THREE.DirectionalLight(0xffffff, 0.9);
+            light.position.set(5, 10, 7.5);
+            light.castShadow = true;
+            scene.add(light);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 3;
+            controls.maxDistance = 12;
+
+            pizzaTexture = createPizzaTexture();
+            sPizza = createPizza(S_RADIUS, S_HEIGHT);
+            sPizza.position.set(-3.5, S_HEIGHT / 2, 0);
+            scene.add(sPizza);
+
+            lPizzaContainer = createContainer(L_RADIUS, L_HEIGHT);
+            lPizzaContainer.position.set(2, 0, 0);
+            scene.add(lPizzaContainer);
+            
+            window.addEventListener('resize', onResize);
+            animate();
+        }
+
+        function createPizzaTexture() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.fillStyle = '#C04040';
+            for (let i = 0; i < 20; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random()*256, Math.random()*256, 10+Math.random()*10, 0, Math.PI*2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(c);
+        }
+
+        function createPizza(r, h) {
+            const g = new THREE.Group();
+            const crust = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const top = new THREE.MeshStandardMaterial({ map: pizzaTexture });
+            const geo = new THREE.CylinderGeometry(r, r, h, 64);
+            const mesh = new THREE.Mesh(geo, [crust, top, crust]);
+            mesh.castShadow = true;
+            g.add(mesh);
+            return g;
+        }
+
+        function createPiece() {
+            const crust = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const top = new THREE.MeshStandardMaterial({ map: pizzaTexture });
+            const r = S_RADIUS * 0.25;
+            const h = S_HEIGHT * 0.5;
+            const geo = new THREE.CylinderGeometry(r, r, h, 32);
+            return new THREE.Mesh(geo, [crust, top, crust]);
+        }
+        
+        function createContainer(r, h) {
+            const g = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: '#999', side: THREE.DoubleSide, transparent: true, opacity: 0.15 });
+            const bottom = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.02, 64), mat);
+            bottom.position.y = -h/2;
+            const wall = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 64, 1, true), mat);
+            g.add(bottom, wall);
+            return g;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            for (let i = flyingPieces.length - 1; i >= 0; i--) {
+                const p = flyingPieces[i];
+                p.progress += 0.03;
+                const arc = Math.sin(p.progress * Math.PI) * 2.5;
+                p.mesh.position.lerpVectors(p.start, p.end, p.progress);
+                p.mesh.position.y += arc;
+                p.mesh.rotation.x += 0.1;
+                p.mesh.rotation.y += 0.15;
+                
+                if (p.progress >= 1) {
+                    scene.remove(p.mesh);
+                    flyingPieces.splice(i, 1);
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        function onResize() {
+            camera.aspect = sceneContainer.clientWidth / sceneContainer.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(sceneContainer.clientWidth, sceneContainer.clientHeight);
+        }
+
+        function runExperiment(count) {
+            if (count <= 0) {
+                updateFilled(0);
+                updateStatus(0);
+                return;
+            }
+
+            // Clear previous pieces and animations
+            flyingPieces.forEach(p => scene.remove(p.mesh));
+            flyingPieces.length = 0;
+            updateFilled(0);
+
+            const numPieces = Math.max(8, Math.ceil(count * 8));
+            for (let i = 0; i < numPieces; i++) {
+                const pieceMesh = createPiece();
+                const startPos = new THREE.Vector3(
+                    sPizza.position.x + (Math.random() - 0.5) * S_RADIUS,
+                    sPizza.position.y,
+                    sPizza.position.z + (Math.random() - 0.5) * S_RADIUS
+                );
+                pieceMesh.position.copy(startPos);
+                scene.add(pieceMesh);
+                
+                const fillRatio = Math.min(1, count / EXACT_COUNT);
+                const endPos = new THREE.Vector3(
+                    lPizzaContainer.position.x + (Math.random() - 0.5) * L_RADIUS * 1.8,
+                    lPizzaContainer.position.y - L_HEIGHT/2 + (Math.random() * L_HEIGHT * fillRatio),
+                    lPizzaContainer.position.z + (Math.random() - 0.5) * L_RADIUS * 1.8
+                );
+                
+                flyingPieces.push({ mesh: pieceMesh, start: startPos, end: endPos, progress: Math.random() * -0.2 });
+            }
+
+            // Update the filled volume after a delay
+            setTimeout(() => {
+                updateFilled(count);
+                updateStatus(count);
+            }, 1200);
+        }
+
+        function updateFilled(count) {
+            if (filledPizza) lPizzaContainer.remove(filledPizza);
+            if (count <= 0) return;
+            
+            const fillRatio = Math.min(1.2, count / EXACT_COUNT); // Allow for overflow visualization
+            const fillHeight = L_HEIGHT * fillRatio;
+            
+            const crust = new THREE.MeshStandardMaterial({ color: '#D2B48C' });
+            const top = new THREE.MeshStandardMaterial({ map: pizzaTexture });
+            const geo = new THREE.CylinderGeometry(L_RADIUS*0.98, L_RADIUS*0.98, fillHeight, 64);
+            filledPizza = new THREE.Mesh(geo, [crust, top, crust]);
+            
+            filledPizza.position.y = -L_HEIGHT/2 + fillHeight/2;
+            lPizzaContainer.add(filledPizza);
+        }
+        
+        function updateStatus(cnt) {
+            const pct = (cnt / EXACT_COUNT) * 100;
+            const el = document.getElementById('status');
+            let statusText = `(시도: ${trialCount}회) 당신의 추측: ${cnt.toFixed(2)}개<br>`;
+
+            if (cnt === 0) {
+                statusText = '값을 입력해 채워보세요!';
+            } else if (Math.abs(cnt - EXACT_COUNT) < 0.01) {
+                el.className = 'text-center p-4 bg-teal-900 rounded-lg text-teal-200 font-bold';
+                statusText += `🎉 정확해요! L피자가 완벽하게 가득 찼습니다!`;
+            } else if (pct < 98) {
+                el.className = 'text-center p-4 bg-yellow-900 rounded-lg text-yellow-200';
+                statusText += `🍕 조금 부족해요! 아직 공간이 남았어요!`;
+            } else if (pct <= 102) {
+                el.className = 'text-center p-4 bg-green-900 rounded-lg text-green-200';
+                statusText += `👍 거의 맞았어요! 아주 조금 차이가 나네요!`;
+            } else {
+                el.className = 'text-center p-4 bg-red-900 rounded-lg text-red-200';
+                statusText += `💥 너무 많아요! 피자가 넘쳐 흐릅니다!`;
+            }
+            el.innerHTML = statusText;
+        }
+        
+        // Event Listeners
+        document.getElementById('check-ratio-btn').addEventListener('click', () => {
+            const ratioInput = document.getElementById('ratio-input');
+            const answer = ratioInput.value.replace(/\s/g, ''); // remove all spaces
+            const feedbackEl = document.getElementById('answer-feedback-0');
+            
+            if (answer === '2:3') {
+                feedbackEl.innerHTML = `<p class="text-green-300 font-bold">정답입니다 😊</p>`;
+                feedbackEl.className = 'text-center p-3 rounded-lg bg-teal-900';
+                
+                document.getElementById('ratio-input-container').classList.add('hidden');
+                document.getElementById('check-ratio-btn').classList.add('hidden');
+                document.getElementById('next-btn-0').classList.remove('hidden');
+            } else {
+                feedbackEl.innerHTML = `<p class="text-red-300 font-bold">오답입니다. 다시 생각해보세요!</p>`;
+                feedbackEl.className = 'text-center p-3 rounded-lg bg-red-900';
+                ratioInput.focus();
+            }
+            feedbackEl.classList.remove('hidden');
+        });
+
+        document.getElementById('next-btn-0').addEventListener('click', () => setStep(1));
+        
+        document.getElementById('next-btn-1').addEventListener('click', () => {
+            userGuess = parseFloat(document.getElementById('guessInput').value) || 0;
+            if (userGuess <= 0) {
+                alert("1 이상의 숫자를 입력해주세요.");
+                return;
+            }
+
+            trialCount++;
+            if (userGuess < EXACT_COUNT) {
+                hasUnderflowed = true;
+            } else if (userGuess > EXACT_COUNT) {
+                hasOverflowed = true;
+            }
+
+            setStep(2);
+            runExperiment(userGuess);
+        });
+
+        document.getElementById('prev-btn-2').addEventListener('click', () => {
+            updateFilled(0);
+            setStep(1)
+        });
+        document.getElementById('next-btn-2').addEventListener('click', () => setStep(3));
+
+        document.getElementById('prev-btn-3').addEventListener('click', () => setStep(2));
+        
+        document.getElementById('check-final-answer-btn').addEventListener('click', () => {
+            const answerInput = document.getElementById('final-answer-input').value.trim();
+            const feedbackEl = document.getElementById('answer-feedback-3');
+            
+            if (answerInput === '3.375' || answerInput === '27/8') {
+                feedbackEl.innerHTML = '정답입니다! 원리를 정확히 이해했네요. 👍';
+                feedbackEl.className = 'text-center p-2 rounded-lg text-sm bg-teal-900';
+                document.getElementById('next-btn-3').classList.remove('hidden');
+                document.getElementById('check-final-answer-btn').classList.add('hidden');
+            } else {
+                feedbackEl.innerHTML = '아쉽네요. 부피비(8:27)를 다시 한번 생각해보세요.';
+                feedbackEl.className = 'text-center p-2 rounded-lg text-sm bg-red-900';
+            }
+            feedbackEl.classList.remove('hidden');
+        });
+
+        document.getElementById('next-btn-3').addEventListener('click', () => setStep(4));
+        
+        document.getElementById('final-check-btn').addEventListener('click', () => {
+            runExperiment(EXACT_COUNT);
+            // Also update status immediately for the perfect case
+            setTimeout(() => {
+                const el = document.getElementById('status');
+                el.className = 'text-center p-4 bg-teal-900 rounded-lg text-teal-200 font-bold';
+                el.innerHTML = `🎉 정확해요! L피자가 완벽하게 가득 찼습니다!`;
+            }, 1200);
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            userGuess = 0;
+            trialCount = 0;
+            hasUnderflowed = false;
+            hasOverflowed = false;
+            document.getElementById('guessInput').value = '';
+            updateFilled(0);
+            // Reset step 0
+            document.getElementById('ratio-input-container').classList.remove('hidden');
+            document.getElementById('ratio-input').value = '';
+            document.getElementById('answer-feedback-0').classList.add('hidden');
+            document.getElementById('check-ratio-btn').classList.remove('hidden');
+            document.getElementById('next-btn-0').classList.add('hidden');
+            setStep(0);
+        });
+        
+        init3D();
+        setStep(0);
+    </script>
+</body>
+</html>
+
