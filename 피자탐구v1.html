@@ -21,6 +21,9 @@
         .btn {
             @apply bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75 transition-all duration-200 w-full;
         }
+        .btn:disabled {
+            @apply opacity-50 cursor-not-allowed;
+        }
         .btn-secondary {
             @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
         }
@@ -49,15 +52,12 @@
         </header>
 
         <div class="flex flex-col lg:flex-row gap-6">
-            <!-- Interactive Canvas -->
             <div class="flex-grow">
                 <div id="scene-container" class="w-full h-96 lg:h-[500px]"></div>
                 <p class="text-center text-xs text-gray-500 mt-2">마우스로 드래그해 회전하고, 스크롤로 확대/축소해 보세요.</p>
             </div>
 
-            <!-- Control Panel -->
             <div class="w-full lg:w-96 bg-gray-800 p-6 rounded-lg shadow-xl flex-shrink-0 flex flex-col justify-center min-h-[300px]">
-                <!-- STEP 0: 문제 소개 -->
                 <div id="step-0" class="space-y-4 text-center">
                     <p class="text-lg">두 가지 크기의 피자가 있습니다.</p>
                     <div class="bg-gray-700 p-4 rounded-lg space-y-2">
@@ -70,7 +70,6 @@
                     <button id="next-btn-0" class="btn mt-2">먼저 직접 채워보기</button>
                 </div>
 
-                <!-- STEP 1: 실험으로 먼저 채워보기 -->
                 <div id="step-1" class="hidden space-y-4">
                     <p class="text-lg text-center">S 피자를 조각내서 L 상자에 채워보세요!</p>
                     <div class="flex items-center justify-center gap-3 mt-2">
@@ -87,10 +86,10 @@
                     <div class="flex justify-between mt-2 gap-2">
                         <button id="prev-btn-1" class="btn btn-secondary">이전</button>
                         <button id="next-btn-1" class="btn">계산으로 확인하기</button>
+                        <button id="jump-to-answer-btn" class="btn hidden">정확히 몇 판일까?</button>
                     </div>
                 </div>
 
-                <!-- STEP 2: 부피로 추론하기 -->
                 <div id="step-2" class="hidden space-y-4 text-center">
                     <p class="text-lg">부피로 생각해볼까요?</p>
                     <div class="bg-gray-700 p-4 rounded-lg space-y-2 text-left">
@@ -110,7 +109,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: 개수 정답 입력/판별 -->
                 <div id="step-3" class="hidden space-y-4 text-center">
                     <p class="text-lg">정확한 S피자 <b>개수</b>를 입력해 보세요.</p>
                     <div class="flex items-center justify-center gap-3">
@@ -121,14 +119,12 @@
                     <div id="answerResult" class="text-center p-3 bg-gray-700 rounded-lg text-gray-300">아직 확인 전이에요.</div>
                     <div class="flex justify-between mt-2 gap-2">
                         <button id="prev-btn-3" class="btn btn-secondary">이전</button>
-                        <button id="next-btn-3" class="btn">생각해보기로</button>
+                        <button id="next-btn-3" class="btn" disabled>생각해보기로</button>
                     </div>
                 </div>
 
-                <!-- STEP 4: (미사용, 자리 유지용) -->
                 <div id="step-4" class="hidden"></div>
 
-                <!-- STEP 5: 생각해보기 -->
                 <div id="step-5" class="hidden space-y-4 text-left">
                     <p class="text-xl text-teal-300 font-bold text-center">🧠 생각해보기</p>
                     <ul class="list-disc pl-5 space-y-2 text-gray-200">
@@ -146,7 +142,6 @@
         </div>
     </div>
 
-    <!-- 3D 렌더링 스크립트 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     
@@ -189,14 +184,20 @@
                 step.classList.toggle('hidden', index !== stepIndex);
             });
             
-            // Reset hints
+            // 각 단계에 진입할 때 상태 초기화
             if (stepIndex === 1) {
                 document.getElementById('hint-text-1').classList.add('hidden');
             }
             if (stepIndex === 2) {
                 document.getElementById('hint-text-2').classList.add('hidden');
+            }
+            if (stepIndex === 3) {
+                // Step 3 (정답 입력)으로 진입할 때 상태 초기화
                 document.getElementById('answerResult').textContent = '아직 확인 전이에요.';
                 document.getElementById('answerResult').className = 'text-center p-3 bg-gray-700 rounded-lg text-gray-300';
+                document.getElementById('answerInput').value = ''; // 이전 입력값 지우기
+                const nextBtn3 = document.getElementById('next-btn-3');
+                nextBtn3.disabled = true; // 다음 버튼 비활성화
             }
         }
 
@@ -445,19 +446,29 @@
             const totalSVolume = count * S_VOLUME;
             const percentage = (totalSVolume / L_VOLUME) * 100;
             const statusEl = document.getElementById('status');
+            const nextBtn1 = document.getElementById('next-btn-1');
+            const jumpToAnswerBtn = document.getElementById('jump-to-answer-btn');
             
             if (count === 0) {
                 statusEl.className = 'text-center p-4 bg-gray-700 rounded-lg mt-2 text-gray-300';
                 statusEl.textContent = '숫자를 입력해보세요!';
+                nextBtn1.classList.remove('hidden');
+                jumpToAnswerBtn.classList.add('hidden');
             } else if (percentage < 95) {
                 statusEl.className = 'text-center p-4 bg-yellow-900 rounded-lg mt-2 text-yellow-200';
                 statusEl.textContent = `🍕 ${count.toFixed(1)}개 투입! 아직 공간이 남았어요!`;
+                nextBtn1.classList.remove('hidden');
+                jumpToAnswerBtn.classList.add('hidden');
             } else if (percentage >= 95 && percentage <= 105) {
                 statusEl.className = 'text-center p-4 bg-teal-900 rounded-lg mt-2 text-teal-200 font-bold';
                 statusEl.textContent = `🎉 ${count.toFixed(1)}개로 거의 딱 맞아요!`;
+                nextBtn1.classList.add('hidden');
+                jumpToAnswerBtn.classList.remove('hidden');
             } else {
                 statusEl.className = 'text-center p-4 bg-red-900 rounded-lg mt-2 text-red-200';
                 statusEl.textContent = `💥 ${count.toFixed(1)}개는 너무 많아요! 넘쳤어요!`;
+                nextBtn1.classList.remove('hidden');
+                jumpToAnswerBtn.classList.add('hidden');
             }
         }
 
@@ -465,19 +476,24 @@
             const ansInput = document.getElementById('answerInput').value.trim().replace(',', '.');
             const val = parseFloat(ansInput);
             const box = document.getElementById('answerResult');
+            const nextBtn = document.getElementById('next-btn-3');
+
             if (isNaN(val)) {
                 box.className = 'text-center p-3 bg-red-900 rounded-lg text-red-100';
                 box.textContent = '숫자를 입력해 주세요.';
+                nextBtn.disabled = true;
                 return;
             }
             const diff = Math.abs(val - EXACT_COUNT);
             if (diff <= 0.01) {
                 box.className = 'text-center p-3 bg-teal-900 rounded-lg text-teal-100 font-bold';
-                box.innerHTML = `정답! ✅ (정확한 값은 <b>${EXACT_COUNT}</b> 입니다)`;
+                box.innerHTML = `정답입니다😊`;
+                nextBtn.disabled = false; // 정답일 경우 버튼 활성화
             } else {
                 const hint = (val < EXACT_COUNT) ? '조금 더 크게' : '조금 더 작게';
                 box.className = 'text-center p-3 bg-yellow-900 rounded-lg text-yellow-100';
                 box.innerHTML = `아쉽네요. ❗ ${hint} 입력해 보세요. (오차: ${diff.toFixed(3)})`;
+                nextBtn.disabled = true; // 오답일 경우 버튼 비활성화
             }
         }
 
@@ -489,6 +505,9 @@
         });
         document.getElementById('next-btn-1').addEventListener('click', () => setStep(2));
         document.getElementById('prev-btn-1').addEventListener('click', () => setStep(0));
+
+        // ✨ 추가된 버튼의 이벤트 리스너
+        document.getElementById('jump-to-answer-btn').addEventListener('click', () => setStep(3));
 
         document.getElementById('hint-btn-2').addEventListener('click', () => {
             document.getElementById('hint-text-2').classList.remove('hidden');
