@@ -472,31 +472,34 @@
             }
         }
 
-        function checkAnswer() {
-            const ansInput = document.getElementById('answerInput').value.trim().replace(',', '.');
-            const val = parseFloat(ansInput);
-            const box = document.getElementById('answerResult');
-            const nextBtn = document.getElementById('next-btn-3');
+       function checkAnswer() {
+    const raw = document.getElementById('answerInput').value.trim(); // 👈 쉼표 치환 제거(엄격 채점)
+    const box = document.getElementById('answerResult');
+    const nextBtn = document.getElementById('next-btn-3');
 
-            if (isNaN(val)) {
-                box.className = 'text-center p-3 bg-red-900 rounded-lg text-red-100';
-                box.textContent = '숫자를 입력해 주세요.';
-                nextBtn.disabled = true;
-                return;
-            }
-            const diff = Math.abs(val - EXACT_COUNT);
-            if (diff <= 0.01) {
-                box.className = 'text-center p-3 bg-teal-900 rounded-lg text-teal-100 font-bold';
-                box.innerHTML = `정답입니다😊`;
-                nextBtn.disabled = false; // 정답일 경우 버튼 활성화
-            } else {
-                const hint = (val < EXACT_COUNT) ? '조금 더 크게' : '조금 더 작게';
-                box.className = 'text-center p-3 bg-yellow-900 rounded-lg text-yellow-100';
-                box.innerHTML = `아쉽네요. ❗ ${hint} 입력해 보세요. (오차: ${diff.toFixed(3)})`;
-                nextBtn.disabled = true; // 오답일 경우 버튼 비활성화
-            }
-        }
+    const EXACT_FRACTION = '27/8';
+    const EXACT_DECIMAL  = '3.375';
 
+    // 오직 두 형태만 정답
+    const isCorrect = (raw === EXACT_FRACTION) || (raw === EXACT_DECIMAL);
+
+    if (raw.length === 0) {
+        box.className = 'text-center p-3 bg-red-900 rounded-lg text-red-100';
+        box.textContent = '값을 입력해 주세요. (예: 27/8 또는 3.375)';
+        nextBtn.disabled = true;
+        return;
+    }
+
+    if (isCorrect) {
+        box.className = 'text-center p-3 bg-teal-900 rounded-lg text-teal-100 font-bold';
+        box.innerHTML = '정답입니다 😊';
+        nextBtn.disabled = false;
+    } else {
+        box.className = 'text-center p-3 bg-yellow-900 rounded-lg text-yellow-100';
+        box.innerHTML = '아쉽네요. <b>정확히</b> <span class="kbd">27/8</span> 또는 <span class="kbd">3.375</span>만 정답으로 인정돼요.';
+        nextBtn.disabled = true;
+    }
+}
         // Event Listeners
         document.getElementById('next-btn-0').addEventListener('click', () => setStep(1));
 
