@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -27,7 +28,6 @@
         .btn-secondary {
             @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
         }
-        /* 입력값을 '검정색'으로 보이도록 강제 */
         input[type="number"] {
             @apply w-32 px-4 py-2 text-xl text-center border-2 border-gray-600 rounded-lg font-bold;
             color: #000 !important;
@@ -48,7 +48,7 @@
     <div class="w-full max-w-5xl">
         <header class="text-center mb-6">
             <h1 class="text-3xl md:text-4xl font-bold text-teal-300">🍕 S사이즈 피자로 L사이즈를 채울 수 있을까?</h1>
-            <p class="text-lg text-gray-400 mt-2">먼저 직접 채워보고 → 그다음 원리로 추론하고 → 마지막에 생각을 정리해요.</p>
+            <p class="text-lg text-gray-400 mt-2">먼저 직접 채워보고 → 그다음 정확한 개수를 맞춰보세요.</p>
         </header>
 
         <div class="flex flex-col lg:flex-row gap-6">
@@ -85,31 +85,11 @@
                     </div>
                     <div class="flex justify-between mt-2 gap-2">
                         <button id="prev-btn-1" class="btn btn-secondary">이전</button>
-                        <button id="next-btn-1" class="btn">계산으로 확인하기</button>
-                        <button id="jump-to-answer-btn" class="btn hidden">정확히 몇 판일까?</button>
+                        <button id="next-btn-1" class="btn">정확히 S사이즈 몇 판일까?</button>
                     </div>
                 </div>
 
                 <div id="step-2" class="hidden space-y-4 text-center">
-                    <p class="text-lg">부피로 생각해볼까요?</p>
-                    <div class="bg-gray-700 p-4 rounded-lg space-y-2 text-left">
-                        <div><span class="text-pink-300">S 부피:</span> <span class="text-gray-300">π × 10² × 2 = <b>200π</b> cm³</span></div>
-                        <div><span class="text-yellow-300">L 부피:</span> <span class="text-gray-300">π × 15² × <b>h</b> = <b>225πh</b> cm³</span></div>
-                        <hr class="border-gray-600 my-2">
-                        <div class="text-gray-200">필요한 S피자 개수 N = L/S = (225πh)/(200π) = <b>9h/8</b></div>
-                    </div>
-                    <button id="hint-btn-2" class="btn btn-secondary mt-2">힌트</button>
-                    <div id="hint-text-2" class="hidden text-teal-300 pt-2 pb-2">
-                        <p class="font-bold">실험(1단계)에서 채워 보며 추정한 N 값을 식 N=9h/8에 대입해 보세요.</p>
-                        <p class="text-sm text-gray-200">예: N≈3.4라면 3.4≈9h/8 → h≈(8×3.4)/9</p>
-                    </div>
-                    <div class="flex justify-between mt-2 gap-2">
-                        <button id="prev-btn-2" class="btn btn-secondary">이전</button>
-                        <button id="next-btn-2" class="btn">정답 개수 입력하기</button>
-                    </div>
-                </div>
-
-                <div id="step-3" class="hidden space-y-4 text-center">
                     <p class="text-lg">정확한 S피자 <b>개수</b>를 입력해 보세요.</p>
                     <div class="flex items-center justify-center gap-3">
                         <label class="text-gray-300">정답 시도:</label>
@@ -117,25 +97,8 @@
                     </div>
                     <button id="checkAnswerBtn" class="btn mt-1">정답 확인</button>
                     <div id="answerResult" class="text-center p-3 bg-gray-700 rounded-lg text-gray-300">아직 확인 전이에요.</div>
-                    <div class="flex justify-between mt-2 gap-2">
-                        <button id="prev-btn-3" class="btn btn-secondary">이전</button>
-                        <button id="next-btn-3" class="btn" disabled>생각해보기로</button>
-                    </div>
-                </div>
-
-                <div id="step-4" class="hidden"></div>
-
-                <div id="step-5" class="hidden space-y-4 text-left">
-                    <p class="text-xl text-teal-300 font-bold text-center">🧠 생각해보기</p>
-                    <ul class="list-disc pl-5 space-y-2 text-gray-200">
-                        <li>피자는 닮은 원기둥이므로 부피가 반지름의 제곱과 높이에 비례함을 어떻게 활용했나요?</li>
-                        <li>지름이 1.5배(20→30)일 때, 같은 높이라면 부피는 몇 배가 되나요?</li>
-                        <li>이번 문제에서 L의 높이 <span class="kbd">h</span>를 모른다고 했는데, 실험과 식 <span class="kbd">N = 9h/8</span>을 통해 무엇을 추론할 수 있었나요?</li>
-                        <li>만약 L의 높이가 S의 높이의 <span class="kbd">1.5</span>배였다면? 필요한 개수 N은 얼마가 될까요?</li>
-                    </ul>
-                    <div class="flex justify-between mt-2 gap-2">
-                        <button id="prev-btn-5" class="btn btn-secondary">이전</button>
-                        <button id="restart-btn" class="btn">처음부터 다시하기</button>
+                    <div class="flex justify-center mt-2">
+                        <button id="prev-btn-2" class="btn btn-secondary">이전</button>
                     </div>
                 </div>
             </div>
@@ -146,16 +109,14 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     
     <script>
-        // 상수 정의 (장면 스케일)
-        const L_RADIUS = 1.5;   // 30cm에 해당 (비율 표현용)
-        const L_HEIGHT = 0.3;   // 실제 h는 UI에서는 ?cm로 표기
-        const S_RADIUS = 1.0;   // 20cm
-        const S_HEIGHT = 0.2;   // 2cm
+        const L_RADIUS = 1.5;
+        const L_HEIGHT = 0.3;
+        const S_RADIUS = 1.0;
+        const S_HEIGHT = 0.2;
 
-        // 실제 부피(단위배수) 계산용
-        const L_VOLUME = 675;   // π는 공통이라 생략. 15^2 * 3 = 675
-        const S_VOLUME = 200;   // 10^2 * 2 = 200
-        const EXACT_COUNT = L_VOLUME / S_VOLUME; // 3.375
+        const L_VOLUME = 675;
+        const S_VOLUME = 200;
+        const EXACT_COUNT = L_VOLUME / S_VOLUME;
 
         let scene, camera, renderer, controls;
         let sPizza, lPizzaContainer, pizzaTexture;
@@ -166,14 +127,10 @@
         let targetCount = 0;
         let currentStep = 0;
 
-        // UI Elements
         const steps = [
             document.getElementById('step-0'),
             document.getElementById('step-1'),
-            document.getElementById('step-2'),
-            document.getElementById('step-3'),
-            document.getElementById('step-4'),
-            document.getElementById('step-5')
+            document.getElementById('step-2')
         ];
 
         const sceneContainer = document.getElementById('scene-container');
@@ -184,20 +141,13 @@
                 step.classList.toggle('hidden', index !== stepIndex);
             });
             
-            // 각 단계에 진입할 때 상태 초기화
             if (stepIndex === 1) {
                 document.getElementById('hint-text-1').classList.add('hidden');
             }
             if (stepIndex === 2) {
-                document.getElementById('hint-text-2').classList.add('hidden');
-            }
-            if (stepIndex === 3) {
-                // Step 3 (정답 입력)으로 진입할 때 상태 초기화
                 document.getElementById('answerResult').textContent = '아직 확인 전이에요.';
                 document.getElementById('answerResult').className = 'text-center p-3 bg-gray-700 rounded-lg text-gray-300';
-                document.getElementById('answerInput').value = ''; // 이전 입력값 지우기
-                const nextBtn3 = document.getElementById('next-btn-3');
-                nextBtn3.disabled = true; // 다음 버튼 비활성화
+                document.getElementById('answerInput').value = '';
             }
         }
 
@@ -413,7 +363,7 @@
         }
 
         function calculateFillHeight(pizzaCount) {
-            const heightInCm = (pizzaCount * 200) / 225; // h를 모른다고 표기했어도 내부 계산은 h=3으로 시뮬레이션
+            const heightInCm = (pizzaCount * 200) / 225;
             const fillHeight = heightInCm * 0.1;
             return fillHeight;
         }
@@ -446,61 +396,45 @@
             const totalSVolume = count * S_VOLUME;
             const percentage = (totalSVolume / L_VOLUME) * 100;
             const statusEl = document.getElementById('status');
-            const nextBtn1 = document.getElementById('next-btn-1');
-            const jumpToAnswerBtn = document.getElementById('jump-to-answer-btn');
             
             if (count === 0) {
                 statusEl.className = 'text-center p-4 bg-gray-700 rounded-lg mt-2 text-gray-300';
                 statusEl.textContent = '숫자를 입력해보세요!';
-                nextBtn1.classList.remove('hidden');
-                jumpToAnswerBtn.classList.add('hidden');
             } else if (percentage < 95) {
                 statusEl.className = 'text-center p-4 bg-yellow-900 rounded-lg mt-2 text-yellow-200';
                 statusEl.textContent = `🍕 ${count.toFixed(1)}개 투입! 아직 공간이 남았어요!`;
-                nextBtn1.classList.remove('hidden');
-                jumpToAnswerBtn.classList.add('hidden');
             } else if (percentage >= 95 && percentage <= 105) {
                 statusEl.className = 'text-center p-4 bg-teal-900 rounded-lg mt-2 text-teal-200 font-bold';
                 statusEl.textContent = `🎉 ${count.toFixed(1)}개로 거의 딱 맞아요!`;
-                nextBtn1.classList.add('hidden');
-                jumpToAnswerBtn.classList.remove('hidden');
             } else {
                 statusEl.className = 'text-center p-4 bg-red-900 rounded-lg mt-2 text-red-200';
                 statusEl.textContent = `💥 ${count.toFixed(1)}개는 너무 많아요! 넘쳤어요!`;
-                nextBtn1.classList.remove('hidden');
-                jumpToAnswerBtn.classList.add('hidden');
             }
         }
 
-       function checkAnswer() {
-    const raw = document.getElementById('answerInput').value.trim(); // 👈 쉼표 치환 제거(엄격 채점)
-    const box = document.getElementById('answerResult');
-    const nextBtn = document.getElementById('next-btn-3');
+        function checkAnswer() {
+            const raw = document.getElementById('answerInput').value.trim();
+            const normalized = raw.replace(/\s+/g, '');
+            const box = document.getElementById('answerResult');
 
-    const EXACT_FRACTION = '27/8';
-    const EXACT_DECIMAL  = '3.375';
+            const isFractionCorrect = normalized === '27/8';
+            const isDecimalStrict = /^0*3\.3750*$/.test(normalized);
 
-    // 오직 두 형태만 정답
-    const isCorrect = (raw === EXACT_FRACTION) || (raw === EXACT_DECIMAL);
+            if (normalized.length === 0) {
+                box.className = 'text-center p-3 bg-red-900 rounded-lg text-red-100';
+                box.textContent = '숫자 또는 분수를 입력해 주세요.';
+                return;
+            }
 
-    if (raw.length === 0) {
-        box.className = 'text-center p-3 bg-red-900 rounded-lg text-red-100';
-        box.textContent = '값을 입력해 주세요. (예: 27/8 또는 3.375)';
-        nextBtn.disabled = true;
-        return;
-    }
+            if (isFractionCorrect || isDecimalStrict) {
+                box.className = 'text-center p-3 bg-teal-900 rounded-lg text-teal-100 font-bold';
+                box.innerHTML = '정답입니다 😊<br><br>처음부터 다시 해보고 싶다면 새로고침 하세요!';
+            } else {
+                box.className = 'text-center p-3 bg-yellow-900 rounded-lg text-yellow-100';
+                box.innerHTML = '정답이 아니에요. 다시 시도해 보세요.';
+            }
+        }
 
-    if (isCorrect) {
-        box.className = 'text-center p-3 bg-teal-900 rounded-lg text-teal-100 font-bold';
-        box.innerHTML = '정답입니다 😊';
-        nextBtn.disabled = false;
-    } else {
-        box.className = 'text-center p-3 bg-yellow-900 rounded-lg text-yellow-100';
-        box.innerHTML = '아쉽네요. <b> </b> <span class="kbd"> </span>   <span class="kbd"> </span>다시 시도해보세요.';
-        nextBtn.disabled = true;
-    }
-}
-        // Event Listeners
         document.getElementById('next-btn-0').addEventListener('click', () => setStep(1));
 
         document.getElementById('hint-btn-1').addEventListener('click', () => {
@@ -509,36 +443,11 @@
         document.getElementById('next-btn-1').addEventListener('click', () => setStep(2));
         document.getElementById('prev-btn-1').addEventListener('click', () => setStep(0));
 
-        // ✨ 추가된 버튼의 이벤트 리스너
-        document.getElementById('jump-to-answer-btn').addEventListener('click', () => setStep(3));
-
-        document.getElementById('hint-btn-2').addEventListener('click', () => {
-            document.getElementById('hint-text-2').classList.remove('hidden');
-        });
-        document.getElementById('next-btn-2').addEventListener('click', () => setStep(3));
+        document.getElementById('checkAnswerBtn').addEventListener('click', checkAnswer);
         document.getElementById('prev-btn-2').addEventListener('click', () => setStep(1));
 
-        document.getElementById('checkAnswerBtn').addEventListener('click', checkAnswer);
-        document.getElementById('next-btn-3').addEventListener('click', () => setStep(5));
-        document.getElementById('prev-btn-3').addEventListener('click', () => setStep(2));
-
-        document.getElementById('prev-btn-5').addEventListener('click', () => setStep(3));
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            currentCount = 0;
-            targetCount = 0;
-            const input = document.getElementById('pizzaCountInput');
-            if (input) input.value = 0;
-            if (filledPizza) {
-                lPizzaContainer.remove(filledPizza);
-                filledPizza = null;
-            }
-            setStep(0);
-        });
-
-        // 실시간 시뮬레이션 입력
         document.getElementById('pizzaCountInput').addEventListener('input', updateVisualization);
         
-        // 초기화
         init3D();
         setStep(0);
     </script>
