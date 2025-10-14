@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단청무늬를 활용한 수학 산책</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDF8F0; /* 부드러운 배경색 */
+        }
+        .main-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+            border-bottom: 4px solid transparent;
+        }
+        .nav-button.active {
+            border-bottom-color: #8B4513; /* 전통적인 갈색 */
+            color: #8B4513;
+            font-weight: 700;
+        }
+        .content-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #EAEAEA;
+        }
+        .dancheong-palette button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .dancheong-palette button:hover {
+            transform: scale(1.1);
+        }
+        .dancheong-palette button.selected {
+            border-color: #3B82F6;
+        }
+        /* 단청 색상 */
+        .color-red { background-color: #D83A3A; }
+        .color-blue { background-color: #2E6AB8; }
+        .color-yellow { background-color: #FFD133; }
+        .color-black { background-color: #333333; }
+        .color-white { background-color: #FFFFFF; border: 1px solid #ddd; }
+        .color-green { background-color: #008460; }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="main-container p-4 md:p-8">
+        
+        <header class="text-center my-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#8B4513]">단청무늬를 활용한 수학 산책</h1>
+            <p class="text-lg text-gray-600 mt-2">전통 단청의 아름다움 속에서 수학의 원리를 발견해보세요.</p>
+        </header>
+
+        <nav class="flex justify-center space-x-2 md:space-x-6 bg-white p-3 rounded-full shadow-md mb-8 sticky top-4 z-10">
+            <button class="nav-button p-2 md:px-4 text-sm md:text-base" onclick="showPage('home')">소개</button>
+            <button class="nav-button p-2 md:px-4 text-sm md:text-base" onclick="showPage('draw')">연화무늬 그리기</button>
+            <button class="nav-button p-2 md:px-4 text-sm md:text-base" onclick="showPage('principles')">기하학 원리</button>
+            <button class="nav-button p-2 md:px-4 text-sm md:text-base" onclick="showPage('quiz')">수학 퀴즈</button>
+        </nav>
+
+        <main id="content-area">
+            <!-- 페이지 내용이 여기에 동적으로 삽입됩니다 -->
+        </main>
+
+    </div>
+
+    <script>
+        const content = {
+            home: `
+                <div id="home" class="page fade-in">
+                    <div class="content-card">
+                        <h2 class="text-3xl font-bold mb-4 text-[#8B4513]">하늘에 수를 놓은 듯한 아름다운 단청</h2>
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="md:w-1/2">
+                                <img src="image_3.png" alt="아름다운 단청 사진" class="rounded-lg shadow-lg w-full h-auto object-cover">
+                            </div>
+                            <div class="md:w-1/2 text-lg leading-relaxed">
+                                <p class="mb-4">
+                                    '단청(丹靑)'은 글자 그대로 붉은색과 푸른색을 뜻하지만, 실제로는 청, 적, 황, 백, 흑색의 오색(五色)을 기본으로 배색하여 건물의 벽과 부재를 아름답게 장식하는 모든 행위를 말합니다.
+                                </p>
+                                <p>
+                                    단순히 아름답게 꾸미는 것 외에도, 단청은 다음과 같은 중요한 목적을 가지고 있습니다.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 bg-amber-50 rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">1. 화엄(華嚴)과 설명(說明)</h3>
+                                <p>건물의 권위를 높이고, 교리를 설명하는 그림을 통해 문자를 모르는 사람들도 그 의미를 쉽게 이해할 수 있도록 합니다.</p>
+                            </div>
+                            <div class="p-6 bg-green-50 rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">2. 내구성 증진</h3>
+                                <p>안료와 기름이 나무 표면에 막을 만들어, 습기나 비바람으로부터 목재를 보호하고 썩는 것을 방지하여 건물의 수명을 늘립니다.</p>
+                            </div>
+                            <div class="p-6 bg-blue-50 rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">3. 목재의 단점 보완</h3>
+                                <p>건축에 쓰이는 소나무 등은 시간이 지나면 갈라지거나 틀어질 수 있습니다. 단청은 이러한 나무의 흠집이나 거친 면을 가려줍니다.</p>
+                            </div>
+                            <div class="p-6 bg-red-50 rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">4. 구조 교정</h3>
+                                <p>나무가 뒤틀려 생긴 건축물의 미세한 결함을 단청의 직선과 곡선 무늬를 통해 시각적으로 반듯하게 보이도록 교정하는 효과가 있습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            draw: `
+                <div id="draw" class="page fade-in">
+                    <div class="content-card">
+                        <h2 class="text-3xl font-bold mb-2 text-center text-[#8B4513]">전주 경기전 연화무늬 작도하기</h2>
+                        <p class="text-center text-gray-600 mb-6">종이접기 원리를 이용해 대칭적인 연화무늬를 그리고 색칠해 봅시다.</p>
+                        
+                        <div class="mb-6 flex justify-center gap-4 items-center">
+                            <div class="text-center">
+                                <img src="image_28.png" alt="60도 부채꼴 꽃잎" class="h-24 object-contain mx-auto">
+                                <p class="text-sm text-gray-600 mt-1">1단계: 꽃잎 그리기</p>
+                            </div>
+                            <span class="text-3xl text-gray-400">→</span>
+                            <div class="text-center">
+                                <img src="image_29.png" alt="완성된 연화무늬" class="h-24 object-contain mx-auto">
+                                <p class="text-sm text-gray-600 mt-1">2단계: 회전 대칭</p>
+                            </div>
+                            <span class="text-3xl text-gray-400">→</span>
+                            <div class="text-center">
+                                <img src="image_30.png" alt="채색된 연화무늬" class="h-24 object-contain mx-auto">
+                                <p class="text-sm text-gray-600 mt-1">3단계: 채색 완성</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col lg:flex-row gap-8 items-start">
+                            <!-- 작도 및 채색 영역 -->
+                            <div class="w-full lg:w-1/2 flex flex-col items-center">
+                                <!-- 색상 팔레트를 캔버스 위로 이동 -->
+                                <div class="mb-4 p-4 bg-amber-50 rounded-lg w-full">
+                                    <h4 class="font-bold text-center mb-3">🎨 색상 선택</h4>
+                                    <div id="dancheong-palette" class="dancheong-palette flex justify-center space-x-3">
+                                        <button class="color-red selected" data-color="#D83A3A" title="적색"></button>
+                                        <button class="color-green" data-color="#008460" title="녹색"></button>
+                                        <button class="color-blue" data-color="#2E6AB8" title="청색"></button>
+                                        <button class="color-yellow" data-color="#FFD133" title="황색"></button>
+                                        <button class="color-white" data-color="#FFFFFF" title="백색"></button>
+                                        <button class="color-black" data-color="#333333" title="흑색"></button>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 text-center">원하는 색상을 선택하고 그리세요!</p>
+                                </div>
+                                
+                                <canvas id="dancheongCanvas" width="400" height="400" class="border-2 border-dashed rounded-full bg-white shadow-lg"></canvas>
+                                
+                                <div class="mt-4 flex gap-2">
+                                    <button id="completeBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-bold">
+                                        ✓ 무늬 완성하기
+                                    </button>
+                                    <button id="resetBtn" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition">
+                                        ↺ 다시 그리기
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 설명 영역 -->
+                            <div class="w-full lg:w-1/2">
+                                <div id="draw-instructions" class="space-y-4">
+                                    <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                        <h3 class="font-bold text-lg mb-2">📝 그리기 방법</h3>
+                                        <ol class="list-decimal list-inside space-y-2 text-sm">
+                                            <li>위의 색상 팔레트에서 원하는 색을 선택하세요</li>
+                                            <li>캔버스의 노란색 부채꼴 영역(60도)에 꽃잎을 그리세요</li>
+                                            <li>마우스를 클릭한 채로 드래그하면 선이 그려집니다</li>
+                                            <li>다른 색으로 바꾸려면 색상 버튼을 다시 클릭하세요</li>
+                                            <li>완성되면 "무늬 완성하기" 버튼을 누르세요</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <div class="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                                        <h3 class="font-bold text-lg mb-2">💡 팁</h3>
+                                        <ul class="list-disc list-inside space-y-1 text-sm">
+                                            <li>바깥쪽 테두리는 진한 색으로 그리면 선명해요</li>
+                                            <li>안쪽 부분은 밝은 색으로 그리면 예뻐요</li>
+                                            <li>점선 가이드를 참고하여 그려보세요</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="p-4 border rounded-lg bg-purple-50">
+                                        <h4 class="font-bold text-lg mb-2">✨ 수학 원리</h4>
+                                        <p class="text-sm leading-relaxed">
+                                            하나의 작은 부분(60도)을 그린 후, 이를 <span class="font-bold text-purple-700">회전(Rotation)</span>시켜 
+                                            전체의 무늬를 완성하는 '<span class="font-bold">회전 대칭</span>'은 단청에서 가장 기본적이면서도 
+                                            중요한 수학적 원리입니다. 360도 ÷ 6 = 60도씩 회전하며 아름다운 연화무늬가 만들어집니다!
+                                        </p>
+                                    </div>
+                                    
+                                    <div id="completion-message" class="hidden p-4 bg-yellow-50 rounded-lg border-2 border-yellow-400">
+                                        <h4 class="font-bold text-lg mb-2">🎉 완성!</h4>
+                                        <p class="text-sm">
+                                            회전 대칭으로 아름다운 연화무늬가 완성되었습니다! 
+                                            이것이 바로 단청 장인들이 사용하던 수학적 원리입니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            principles: `
+                <div id="principles" class="page fade-in">
+                    <div class="content-card">
+                        <h2 class="text-3xl font-bold mb-4 text-center text-[#8B4513]">전통문양 속 기하학적 변환</h2>
+                        <p class="text-center text-gray-600 mb-8">단청의 연속적인 무늬는 기본 도형의 반복으로 만들어집니다. 여기에는 4가지 핵심적인 기하학적 규칙이 사용됩니다.</p>
+                        
+                        <div class="space-y-6">
+                            <!-- 평행이동 -->
+                            <div class="p-4 border rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">1. 평행이동 (Translation)</h3>
+                                <p class="mb-4">기본 조각을 일정한 방향과 거리로 미끄러뜨려 반복하는 방법입니다.</p>
+                                <div class="flex items-center justify-center p-4 bg-amber-50 rounded-lg">
+                                    <img src="image_5.png" alt="평행이동 예시" class="h-16">
+                                </div>
+                            </div>
+                            <!-- 반사 -->
+                            <div class="p-4 border rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">2. 반사 (Reflection)</h3>
+                                <p class="mb-4">기본 조각을 거울에 비춘 것처럼 대칭선(축)을 기준으로 뒤집는 방법입니다.</p>
+                                <div class="flex items-center justify-center p-4 bg-blue-50 rounded-lg">
+                                     <img src="image_7.png" alt="반사 예시" class="h-24">
+                                </div>
+                            </div>
+                             <!-- 회전 -->
+                            <div class="p-4 border rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">3. 회전 (Rotation)</h3>
+                                <p class="mb-4">기본 조각을 한 점(회전의 중심)을 기준으로 일정한 각도만큼 돌리는 방법입니다.</p>
+                                <div class="flex items-center justify-center p-4 bg-green-50 rounded-lg">
+                                    <img src="image_26.png" alt="회전 예시" class="h-24">
+                                </div>
+                            </div>
+                            <!-- 미끄럼 반사 -->
+                            <div class="p-4 border rounded-lg">
+                                <h3 class="font-bold text-xl mb-2">4. 미끄럼 반사 (Glide Reflection)</h3>
+                                <p class="mb-4">평행이동과 반사를 결합한 방법으로, 특정 축을 따라 미끄러뜨린 후 그 축에 대해 뒤집는 변환입니다.</p>
+                                <div class="flex items-center justify-center p-4 bg-red-50 rounded-lg">
+                                    <img src="image_10.png" alt="미끄럼 반사 예시" class="h-16">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 p-6 bg-blue-50 rounded-lg">
+                            <h3 class="font-bold text-xl mb-3 text-center">경기전 단청 무늬 분석</h3>
+                            <img src="image_21.png" alt="경기전 단청 무늬" class="w-full rounded-lg shadow-md">
+                            <p class="mt-4 text-sm">위 사진에서 보이는 전주 경기전의 단청 무늬는 회전 대칭을 기반으로 만들어진 연화무늬입니다. 중심에서 방사형으로 퍼져나가는 꽃잎들이 60도씩 회전하며 아름다운 패턴을 만들어냅니다.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            quiz: `
+                <div id="quiz" class="page fade-in">
+                    <div class="content-card">
+                         <h2 class="text-3xl font-bold mb-6 text-center text-[#8B4513]">도전! 수학 퀴즈</h2>
+                         <div class="space-y-8">
+                            <!-- 퀴즈 1 -->
+                            <div class="p-6 rounded-lg border bg-gray-50">
+                                <h3 class="font-bold text-xl mb-2">퀴즈 1: 피타고라스 정리 (구고현의 정리)</h3>
+                                <div class="flex flex-col md:flex-row items-center gap-4">
+                                   <div class="flex-shrink-0">
+                                     <img src="ladder_diagram.svg" alt="사다리 그림" class="w-48 h-48 object-contain">
+                                   </div>
+                                   <div>
+                                       <p class="mb-4">경기전 정문 위 현판을 교체하려고 사다리를 세웠습니다. 벽에 세워진 현판의 높이는 4m, 사다리 밑부분은 벽으로부터 1.5m 떨어져 있습니다. 이때 필요한 사다리의 길이는 몇 m일까요?</p>
+                                       <div class="flex items-center gap-2">
+                                            <input type="number" id="quiz1-answer" class="border rounded p-2 w-24" placeholder="소수점 둘째자리까지">
+                                            <span>m</span>
+                                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="checkQuiz1()">정답 확인</button>
+                                       </div>
+                                       <p id="quiz1-result" class="mt-2 font-bold"></p>
+                                   </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 퀴즈 2 -->
+                            <div class="p-6 rounded-lg border bg-gray-50">
+                                <h3 class="font-bold text-xl mb-2">퀴즈 2: 평행이동 거리 계산</h3>
+                                <div class="mb-4">
+                                    <img src="image_5.png" alt="평행이동 예시" class="h-16 mb-2">
+                                    <p>경기전의 단청무늬를 '평행이동'으로 반복하여 배치하려고 합니다. 한 무늬의 중심에서 다음 무늬의 중심까지의 거리가 15cm이고, 가로로 8개, 세로로 4개를 배치한다면, 첫 번째 무늬의 중심에서 마지막 무늬의 중심까지의 가로와 세로 거리는 각각 얼마일까요?</p>
+                                </div>
+                                <div class="flex flex-col md:flex-row gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <label>가로:</label>
+                                        <input type="number" id="quiz2-answer-w" class="border rounded p-2 w-24" placeholder="cm">
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <label>세로:</label>
+                                        <input type="number" id="quiz2-answer-h" class="border rounded p-2 w-24" placeholder="cm">
+                                    </div>
+                                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="checkQuiz2()">정답 확인</button>
+                                </div>
+                                <p id="quiz2-result" class="mt-2 font-bold"></p>
+                            </div>
+
+                            <!-- 퀴즈 3 -->
+                            <div class="p-6 rounded-lg border bg-gray-50">
+                                <h3 class="font-bold text-xl mb-2">퀴즈 3: 정삼각형의 높이와 중심</h3>
+                                <div class="flex flex-col md:flex-row items-center gap-4">
+                                   <div class="flex-shrink-0">
+                                     <img src="triangle_diagram.svg" alt="정삼각형" class="w-48 h-48 object-contain">
+                                   </div>
+                                    <div>
+                                        <p class="mb-4">단청 무늬에서 한 변의 길이가 12cm인 정삼각형을 발견했습니다. 이 정삼각형의 꼭짓점에서 삼각형의 중심(무게중심)까지의 거리를 구하시오. (힌트: 중심은 높이를 2:1로 나눕니다.)</p>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" id="quiz3-answer" class="border rounded p-2 w-32" placeholder="예: 4√3">
+                                            <span>cm</span>
+                                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="checkQuiz3()">정답 확인</button>
+                                        </div>
+                                        <p id="quiz3-result" class="mt-2 font-bold"></p>
+                                   </div>
+                                </div>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+            `,
+        };
+        
+        const contentArea = document.getElementById('content-area');
+        const navButtons = document.querySelectorAll('.nav-button');
+
+        function showPage(pageId) {
+            contentArea.innerHTML = content[pageId];
+            navButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            const activeButton = Array.from(navButtons).find(btn => btn.getAttribute('onclick') === `showPage('${pageId}')`);
+            if(activeButton) activeButton.classList.add('active');
+
+            if (pageId === 'draw') {
+                initCanvas();
+            }
+        }
+
+        // --- Drawing Canvas Logic ---
+        let canvas, ctx, isDrawing = false, isCompleted = false, paths = [], currentPath = null;
+        let selectedColor = '#D83A3A';
+
+        function initCanvas() {
+            canvas = document.getElementById('dancheongCanvas');
+            ctx = canvas.getContext('2d');
+            paths = [];
+            isCompleted = false;
+            selectedColor = '#D83A3A';
+            
+            drawGuide();
+            setupColorPalette();
+            setupButtons();
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseleave', stopDrawing);
+
+            // Touch events
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
+            canvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDrawing(); });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+        }
+        
+        function setupButtons() {
+            document.getElementById('completeBtn').addEventListener('click', completeDrawing);
+            document.getElementById('resetBtn').addEventListener('click', resetCanvas);
+        }
+        
+        function setupColorPalette() {
+            document.querySelectorAll('.dancheong-palette button').forEach(button => {
+                // 기존 이벤트 제거 후 새로 추가
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectedColor = newButton.dataset.color;
+                    document.querySelectorAll('.dancheong-palette button').forEach(b => b.classList.remove('selected'));
+                    newButton.classList.add('selected');
+                });
+            });
+            
+            // 첫 번째 색상 선택
+            document.querySelector('.dancheong-palette button').classList.add('selected');
+        }
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            if (isCompleted) return;
+            isDrawing = true;
+            const { x, y } = getMousePos(e);
+            currentPath = {
+                points: [{x, y}],
+                color: selectedColor
+            };
+        }
+
+        function stopDrawing() {
+            if (isCompleted || !isDrawing) return;
+            isDrawing = false;
+            if(currentPath && currentPath.points.length > 1) {
+                paths.push(currentPath);
+            }
+            currentPath = null;
+        }
+
+        function draw(e) {
+            if (!isDrawing || isCompleted) return;
+            const { x, y } = getMousePos(e);
+
+            // 60도 부채꼴 영역 내에서만 그리기
+            const angle = Math.atan2(y - 200, x - 200);
+            if (angle > -Math.PI / 2 && angle < -Math.PI / 6) {
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = selectedColor;
+
+                const lastPoint = currentPath.points[currentPath.points.length - 1];
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x, lastPoint.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                currentPath.points.push({x, y});
+            }
+        }
+
+        function drawGuide() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 60도 부채꼴 가이드 영역
+            ctx.beginPath();
+            ctx.moveTo(200, 200);
+            ctx.arc(200, 200, 190, -Math.PI / 2, -Math.PI / 6, false);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(255, 235, 150, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(200, 150, 0, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 중심점
+            ctx.beginPath();
+            ctx.arc(200, 200, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#999';
+            ctx.fill();
+            
+            // 가이드 라인 (점선)
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            
+            // 꽃잎 형태 힌트
+            ctx.beginPath();
+            ctx.moveTo(200, 100);
+            ctx.bezierCurveTo(220, 120, 220, 180, 200, 200);
+            ctx.moveTo(200,100);
+            ctx.bezierCurveTo(180, 120, 180, 180, 200, 200);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function completeDrawing() {
+            if (paths.length === 0) {
+                alert('먼저 꽃잎을 그려주세요!');
+                return;
+            }
+            
+            isCompleted = true;
+            isDrawing = false;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 6개의 꽃잎 그리기 (회전 대칭)
+            for (let i = 0; i < 6; i++) {
+                ctx.save();
+                ctx.translate(200, 200);
+                ctx.rotate(i * Math.PI / 3);
+                ctx.translate(-200, -200);
+                
+                paths.forEach(path => {
+                    if (path.points.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(path.points[0].x, path.points[0].y);
+                    for(let j = 1; j < path.points.length; j++){
+                        ctx.lineTo(path.points[j].x, path.points[j].y);
+                    }
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.strokeStyle = path.color;
+                    ctx.stroke();
+                });
+                
+                ctx.restore();
+            }
+            
+            // 완성 메시지 표시
+            document.getElementById('completion-message').classList.remove('hidden');
+        }
+
+        function resetCanvas() {
+            isCompleted = false;
+            isDrawing = false;
+            paths = [];
+            currentPath = null;
+            selectedColor = '#D83A3A';
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGuide();
+            
+            // 색상 팔레트 초기화
+            document.querySelectorAll('.dancheong-palette button').forEach(b => b.classList.remove('selected'));
+            document.querySelector('.dancheong-palette button').classList.add('selected');
+            
+            // 완성 메시지 숨기기
+            document.getElementById('completion-message').classList.add('hidden');
+        }
+
+        // --- Quiz Logic ---
+        function checkQuiz1() {
+            const answer = parseFloat(document.getElementById('quiz1-answer').value);
+            const resultEl = document.getElementById('quiz1-result');
+            const correctAnswer = Math.sqrt(4*4 + 1.5*1.5);
+            
+            if (Math.abs(answer - 4.27) < 0.01) {
+                resultEl.textContent = '정답입니다! 피타고라스의 정리(c² = a² + b²)를 정확히 사용했네요.';
+                resultEl.style.color = 'green';
+            } else {
+                resultEl.textContent = '아쉽네요. 다시 시도해보세요. 빗변의 제곱은 다른 두 변의 제곱의 합과 같습니다. (√4² + 1.5² = 4.27)';
+                resultEl.style.color = 'red';
+            }
+        }
+
+        function checkQuiz2() {
+            const answerW = parseInt(document.getElementById('quiz2-answer-w').value);
+            const answerH = parseInt(document.getElementById('quiz2-answer-h').value);
+            const resultEl = document.getElementById('quiz2-result');
+
+            const correctW = (8 - 1) * 15;
+            const correctH = (4 - 1) * 15;
+
+            if (answerW === correctW && answerH === correctH) {
+                resultEl.textContent = `정답입니다! 가로: (8-1)×15=${correctW}cm, 세로: (4-1)×15=${correctH}cm 입니다.`;
+                resultEl.style.color = 'green';
+            } else {
+                resultEl.textContent = `아쉽네요. n개의 무늬 사이에는 (n-1)개의 간격이 있습니다.`;
+                resultEl.style.color = 'red';
+            }
+        }
+
+        function checkQuiz3() {
+            const answer = document.getElementById('quiz3-answer').value.replace(/\s/g, '');
+            const resultEl = document.getElementById('quiz3-result');
+            
+            const correctPatterns = ['4√3', '4*sqrt(3)', '4sqrt3', '6.93', '6.928'];
+            
+            if (correctPatterns.some(p => p === answer)) {
+                resultEl.textContent = '정답입니다! 높이(6√3)의 2/3에 해당하는 거리입니다.';
+                resultEl.style.color = 'green';
+            } else {
+                resultEl.textContent = '아쉽네요. 먼저 정삼각형의 높이를 구해보세요. 높이 h = (√3/2) * 12 = 6√3 입니다. 중심까지의 거리는 높이의 2/3 입니다.';
+                resultEl.style.color = 'red';
+            }
+        }
+
+        window.onload = () => showPage('home');
+    </script>
+
+</body>
+</html>

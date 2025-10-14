@@ -1,0 +1,35 @@
+<svg width="250" height="250" xmlns="http://www.w3.org/2000/svg">
+  <!-- 정삼각형 -->
+  <polygon points="125,30 25,207 225,207" fill="none" stroke="#8B4513" stroke-width="3"/>
+  
+  <!-- 한 변 길이 표시 -->
+  <text x="125" y="230" text-anchor="middle" font-size="16" fill="#2E6AB8" font-weight="bold">12cm</text>
+  
+  <!-- 높이 선 (점선) -->
+  <line x1="125" y1="30" x2="125" y2="207" stroke="#D83A3A" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- 중심점 -->
+  <circle cx="125" cy="148" r="5" fill="#D83A3A"/>
+  <text x="140" y="152" font-size="14" fill="#D83A3A" font-weight="bold">중심</text>
+  
+  <!-- 꼭짓점 표시 -->
+  <circle cx="125" cy="30" r="4" fill="#2E6AB8"/>
+  <circle cx="25" cy="207" r="4" fill="#2E6AB8"/>
+  <circle cx="225" cy="207" r="4" fill="#2E6AB8"/>
+  
+  <!-- 중심에서 꼭짓점까지 거리 -->
+  <line x1="125" y1="30" x2="125" y2="148" stroke="#008460" stroke-width="2"/>
+  <text x="135" y="90" font-size="14" fill="#008460" font-weight="bold">거리 = ?</text>
+  
+  <!-- 높이 표시 -->
+  <text x="135" y="120" font-size="12" fill="#D83A3A">h (높이)</text>
+  
+  <!-- 설명 화살표 -->
+  <path d="M 125 148 L 125 30" fill="none" stroke="#008460" stroke-width="1" marker-end="url(#arrowhead)"/>
+  
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <polygon points="0 0, 10 5, 0 10" fill="#008460"/>
+    </marker>
+  </defs>
+</svg>
