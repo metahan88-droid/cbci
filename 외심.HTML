@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인터랙티브 외심 탐구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        canvas {
+            background-color: #1a202c;
+            border-radius: 0.5rem;
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .btn {
+            @apply bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-opacity-75 transition-all duration-200 w-full;
+        }
+        .btn-secondary {
+            @apply bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-300">세 점을 지나는 원이 존재할까?</h1>
+            <p class="text-lg text-gray-400 mt-2">삼각형의 꼭짓점을 드래그하여 모양을 바꿔보세요!</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Interactive Canvas -->
+            <div class="flex-grow">
+                <canvas id="triangleCanvas"></canvas>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="w-full lg:w-80 bg-gray-800 p-6 rounded-lg shadow-xl flex-shrink-0 flex flex-col justify-center min-h-[300px]">
+                <div id="step-1" class="space-y-4 text-center">
+                    <p class="text-lg">삼각형의 세 점을 지나는 원이 있다고 가정해볼까요?</p>
+                    <p class="text-gray-400">그렇다면, 그 원의 중심이 존재할 것입니다.</p>
+                    <button id="next-btn-1" class="btn mt-4">원의 중심 찾기</button>
+                </div>
+
+                <div id="step-2" class="hidden space-y-2 text-center">
+                    <p class="text-lg">원의 중심을 찾았습니다! 이제 원을 그려볼까요?</p>
+                    <button id="next-btn-2" class="btn mt-4">원 그리기</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-2" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <div id="step-3" class="hidden space-y-2 text-center">
+                    <p class="text-lg">이런 원이 존재한다면, 원의 중심과 삼각형은 어떤 관계가 있을까요?</p>
+                    <button id="hint-btn" class="btn btn-secondary mt-4">힌트!</button>
+                    <div id="hint-text" class="hidden text-teal-300 pt-2 pb-2">
+                        <p class="text-xl font-bold">"거리를 이용하여 설명해보세요."</p>
+                    </div>
+                    <button id="next-btn-3" class="btn mt-2 hidden">다음</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-3" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <div id="step-4" class="hidden flex flex-col text-center">
+                    <div id="step-4-initial" class="space-y-2">
+                        <p class="text-lg">원의 중심과 세 꼭짓점의 관계를 관찰해보세요.</p>
+                        <button id="reveal-text-btn" class="btn mt-4">관계 알아보기</button>
+                    </div>
+                    <div id="step-4-revealed" class="hidden space-y-4">
+                        <p class="text-lg text-pink-300">맞아요! 원의 중심에서 세 꼭짓점까지의 거리는 반지름으로 모두 같습니다.</p>
+                        <button id="focus-triangle-btn" class="btn mt-4">하나의 삼각형에 집중하기</button>
+                    </div>
+                    <div id="step-4-focus" class="hidden space-y-3">
+                        <p class="text-lg">이등변삼각형 3개 중 하나에 집중해서 대칭적으로 바라볼 수 있을까요?</p>
+                        <p class="text-gray-300">대칭선은 어떻게 그릴 수 있을까요?</p>
+                        <button id="hint-btn-4" class="btn btn-secondary mt-2">힌트!</button>
+                        <div id="hint-text-4" class="hidden text-teal-300 pt-2 pb-2">
+                            <p>두 요소가 같을 때 겹쳐지게 하는 선을 생각해봅시다.</p>
+                        </div>
+                        <button id="draw-symmetry-btn" class="btn mt-4 hidden">대칭선 그리기</button>
+                    </div>
+                    <div class="flex justify-end mt-auto pt-4">
+                        <button id="prev-btn-4" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+
+                <div id="step-5" class="hidden space-y-2 text-center">
+                     <p class="text-lg">하나의 대칭선을 그었습니다. 나머지 삼각형들도 대칭선을 그려볼까요?</p>
+                    <button id="next-btn-5" class="btn mt-4">나머지도 그리기</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-5" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+                
+                <div id="step-6" class="hidden space-y-2 text-center">
+                    <p class="text-lg">그럼 이 원의 중심은 어떤 선들 위에 있나요?</p>
+                    <button id="next-btn-6" class="btn mt-4">정답 확인</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-6" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+                
+                <div id="step-7" class="hidden space-y-2 text-center">
+                    <p class="text-lg text-teal-300">바로 삼각형의 <span class="font-bold">세 변의 대칭선</span> 위에 있습니다!</p>
+                    <p class="text-gray-300 mt-2">즉, 세 변의 수직이등분선의 교점이 바로 원의 중심(외심)이 됩니다.</p>
+                    <button id="restart-btn" class="btn mt-4">처음부터 다시하기</button>
+                    <div class="flex justify-end mt-2">
+                        <button id="prev-btn-7" class="btn btn-secondary w-auto">이전으로</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('triangleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const steps = [
+        document.getElementById('step-1'), document.getElementById('step-2'),
+        document.getElementById('step-3'), document.getElementById('step-4'),
+        document.getElementById('step-5'), document.getElementById('step-6'),
+        document.getElementById('step-7')
+    ];
+    // Step 4 inner elements
+    const step4Initial = document.getElementById('step-4-initial');
+    const step4Revealed = document.getElementById('step-4-revealed');
+    const step4Focus = document.getElementById('step-4-focus');
+    const revealTextBtn = document.getElementById('reveal-text-btn');
+    const focusTriangleBtn = document.getElementById('focus-triangle-btn');
+    const hintBtn4 = document.getElementById('hint-btn-4');
+    const hintText4 = document.getElementById('hint-text-4');
+
+    // Buttons
+    const nextBtn1 = document.getElementById('next-btn-1');
+    const nextBtn2 = document.getElementById('next-btn-2');
+    const hintBtn = document.getElementById('hint-btn');
+    const hintText = document.getElementById('hint-text');
+    const nextBtn3 = document.getElementById('next-btn-3');
+    const drawSymmetryBtn = document.getElementById('draw-symmetry-btn');
+    const nextBtn5 = document.getElementById('next-btn-5');
+    const nextBtn6 = document.getElementById('next-btn-6');
+    const restartBtn = document.getElementById('restart-btn');
+    const prevBtn2 = document.getElementById('prev-btn-2');
+    const prevBtn3 = document.getElementById('prev-btn-3');
+    const prevBtn4 = document.getElementById('prev-btn-4');
+    const prevBtn5 = document.getElementById('prev-btn-5');
+    const prevBtn6 = document.getElementById('prev-btn-6');
+    const prevBtn7 = document.getElementById('prev-btn-7');
+
+    let vertices = [];
+    let draggedVertex = null;
+    let currentStep = 0;
+    let isFocusingTriangle = false;
+
+    function setStep(stepIndex) {
+        currentStep = stepIndex;
+        isFocusingTriangle = false; // Reset focus on step change
+        steps.forEach((step, index) => {
+            step.classList.toggle('hidden', index !== stepIndex);
+        });
+        
+        // Reset step 4 to its initial state when entering it
+        if (stepIndex === 3) {
+            step4Initial.classList.remove('hidden');
+            step4Revealed.classList.add('hidden');
+            step4Focus.classList.add('hidden');
+            hintText4.classList.add('hidden');
+            drawSymmetryBtn.classList.add('hidden');
+        }
+        draw();
+    }
+
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        const size = Math.min(container.clientWidth, window.innerHeight * 0.7);
+        canvas.width = size;
+        canvas.height = size;
+        if (vertices.length === 0) {
+             vertices = [
+                { x: canvas.width * 0.25, y: canvas.height * 0.75 },
+                { x: canvas.width * 0.75, y: canvas.height * 0.75 },
+                { x: canvas.width * 0.5, y: canvas.height * 0.25 }
+            ];
+        }
+        draw();
+    }
+
+    // --- Geometry Calculation Functions ---
+    function getPerpendicularBisector(p1, p2) {
+        const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        const slope = (p2.y - p1.y) / (p2.x - p1.x);
+        if (Math.abs(p2.x - p1.x) < 0.001) return { mid, slope: 0, type: 'horizontal' };
+        if (Math.abs(slope) < 0.001) return { mid, slope: Infinity, type: 'vertical' };
+        return { mid, slope: -1 / slope, type: 'normal' };
+    }
+
+    function getIntersection(b1, b2) {
+        if (b1.type === 'vertical') return { x: b1.mid.x, y: b2.slope * (b1.mid.x - b2.mid.x) + b2.mid.y };
+        if (b2.type === 'vertical') return { x: b2.mid.x, y: b1.slope * (b2.mid.x - b1.mid.x) + b1.mid.y };
+        if (b1.type === 'horizontal') return { x: (b1.mid.y - b2.mid.y) / b2.slope + b2.mid.x, y: b1.mid.y };
+        if (b2.type === 'horizontal') return { x: (b2.mid.y - b1.mid.y) / b1.slope + b1.mid.x, y: b2.mid.y };
+        const x = (b1.slope * b1.mid.x - b1.mid.y - (b2.slope * b2.mid.x - b2.mid.y)) / (b1.slope - b2.slope);
+        const y = b1.slope * (x - b1.mid.x) + b1.mid.y;
+        return { x, y };
+    }
+    
+    function drawPerpendicularBisector(bisector, color, width, dash = []) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.setLineDash(dash);
+        if (bisector.type === 'vertical') {
+            ctx.moveTo(bisector.mid.x, 0); ctx.lineTo(bisector.mid.x, canvas.height);
+        } else if (bisector.type === 'horizontal') {
+            ctx.moveTo(0, bisector.mid.y); ctx.lineTo(canvas.width, bisector.mid.y);
+        } else {
+            const x1 = 0, y1 = bisector.slope * (x1 - bisector.mid.x) + bisector.mid.y;
+            const x2 = canvas.width, y2 = bisector.slope * (x2 - bisector.mid.x) + bisector.mid.y;
+            ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // --- Drawing Logic ---
+    function draw() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const bisector1 = getPerpendicularBisector(vertices[0], vertices[1]);
+        const bisector2 = getPerpendicularBisector(vertices[1], vertices[2]);
+        const bisector3 = getPerpendicularBisector(vertices[2], vertices[0]);
+        const circumcenter = getIntersection(bisector1, bisector2);
+
+        if (!circumcenter) return;
+
+        // Focus Triangle
+        if (isFocusingTriangle) {
+            ctx.beginPath();
+            ctx.moveTo(circumcenter.x, circumcenter.y);
+            ctx.lineTo(vertices[0].x, vertices[0].y);
+            ctx.lineTo(vertices[1].x, vertices[1].y);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.3)'; // yellow-400 with opacity
+            ctx.fill();
+        }
+
+        // Draw Triangle & Vertices
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+        ctx.lineTo(vertices[1].x, vertices[1].y);
+        ctx.lineTo(vertices[2].x, vertices[2].y);
+        ctx.closePath();
+        ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 2; ctx.stroke();
+        vertices.forEach(v => {
+            ctx.beginPath(); ctx.arc(v.x, v.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#4A5568'; ctx.fill();
+        });
+
+        if (currentStep >= 1) { // Show Circumcenter
+             ctx.beginPath(); ctx.arc(circumcenter.x, circumcenter.y, 6, 0, Math.PI * 2);
+             ctx.fillStyle = '#4fd1c5'; ctx.fill();
+        }
+        if (currentStep >= 2) { // Show Circumcircle
+            const radius = Math.sqrt(Math.pow(circumcenter.x - vertices[0].x, 2) + Math.pow(circumcenter.y - vertices[0].y, 2));
+            ctx.beginPath(); ctx.arc(circumcenter.x, circumcenter.y, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(79, 209, 197, 0.4)'; ctx.lineWidth = 2; ctx.stroke();
+        }
+        if (currentStep >= 3) { // Show distances
+             vertices.forEach(v => {
+                ctx.beginPath(); ctx.moveTo(circumcenter.x, circumcenter.y); ctx.lineTo(v.x, v.y);
+                ctx.strokeStyle = 'rgba(240, 98, 146, 0.8)'; ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]); ctx.stroke();
+            });
+            ctx.setLineDash([]);
+        }
+        if (currentStep === 4) { // Show one symmetry line
+            drawPerpendicularBisector(bisector1, 'rgba(251, 191, 36, 1)', 2);
+        }
+        if (currentStep >= 5) { // Show all symmetry lines
+            drawPerpendicularBisector(bisector1, 'rgba(251, 191, 36, 1)', 2);
+            drawPerpendicularBisector(bisector2, 'rgba(251, 191, 36, 1)', 2);
+            drawPerpendicularBisector(bisector3, 'rgba(251, 191, 36, 1)', 2);
+        }
+    }
+    
+    // --- Event Listeners for Step Progression ---
+    nextBtn1.addEventListener('click', () => setStep(1));
+    nextBtn2.addEventListener('click', () => setStep(2));
+    nextBtn3.addEventListener('click', () => setStep(3));
+    drawSymmetryBtn.addEventListener('click', () => setStep(4));
+    nextBtn5.addEventListener('click', () => setStep(5));
+    nextBtn6.addEventListener('click', () => setStep(6));
+    
+    prevBtn2.addEventListener('click', () => setStep(0));
+    prevBtn3.addEventListener('click', () => setStep(1));
+    prevBtn4.addEventListener('click', () => setStep(2));
+    prevBtn5.addEventListener('click', () => setStep(3));
+    prevBtn6.addEventListener('click', () => setStep(4));
+    prevBtn7.addEventListener('click', () => setStep(5));
+
+    hintBtn.addEventListener('click', () => {
+        hintText.classList.remove('hidden');
+        nextBtn3.classList.remove('hidden');
+        hintBtn.classList.add('hidden');
+    });
+
+    // Step 4 logic
+    revealTextBtn.addEventListener('click', () => {
+        step4Initial.classList.add('hidden');
+        step4Revealed.classList.remove('hidden');
+    });
+    focusTriangleBtn.addEventListener('click', () => {
+        step4Revealed.classList.add('hidden');
+        step4Focus.classList.remove('hidden');
+        isFocusingTriangle = true;
+        draw();
+    });
+    hintBtn4.addEventListener('click', () => {
+        hintText4.classList.remove('hidden');
+        drawSymmetryBtn.classList.remove('hidden');
+        hintBtn4.classList.add('hidden');
+    });
+
+    restartBtn.addEventListener('click', () => {
+        hintText.classList.add('hidden');
+        nextBtn3.classList.add('hidden');
+        hintBtn.classList.remove('hidden');
+        setStep(0);
+    });
+
+    // --- Mouse Drag Logic ---
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+    }
+    canvas.addEventListener('mousedown', e => {
+        const pos = getMousePos(e);
+        for (let i = 0; i < vertices.length; i++) {
+            const v = vertices[i];
+            const dist = Math.sqrt(Math.pow(pos.x - v.x, 2) + Math.pow(pos.y - v.y, 2));
+            if (dist < 10) { draggedVertex = i; break; }
+        }
+    });
+    canvas.addEventListener('mousemove', e => {
+        if (draggedVertex !== null) {
+            const pos = getMousePos(e);
+            vertices[draggedVertex].x = Math.max(0, Math.min(canvas.width, pos.x));
+            vertices[draggedVertex].y = Math.max(0, Math.min(canvas.height, pos.y));
+            draw();
+        }
+    });
+    canvas.addEventListener('mouseup', () => { draggedVertex = null; });
+    canvas.addEventListener('mouseleave', () => { draggedVertex = null; });
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Initial setup
+    resizeCanvas();
+</script>
+
+</body>
+</html>
+
