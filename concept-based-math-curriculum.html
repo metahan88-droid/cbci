@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개념 기반 수학 교육과정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.3em;
+            margin-bottom: 25px;
+        }
+
+        .progress-container {
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 35px;
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .section {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 2.2em;
+            margin-bottom: 25px;
+            border-left: 6px solid #667eea;
+            padding-left: 20px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 1.6em;
+            margin: 30px 0 15px 0;
+        }
+
+        h4 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin: 20px 0 10px 0;
+        }
+
+        .intro-text {
+            font-size: 1.15em;
+            line-height: 1.8;
+            color: #555;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 15px 30px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .tab-button:hover {
+            background: #e8ecff;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .comparison-card {
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.2);
+        }
+
+        .traditional {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .conceptual {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .comparison-card h4 {
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .comparison-card li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            font-size: 1.05em;
+        }
+
+        .comparison-card li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .example-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #ffc107;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }
+
+        .example-container h4 {
+            color: #f57c00;
+            margin-bottom: 15px;
+        }
+
+        .math-demo {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border: 2px solid #e0e0e0;
+        }
+
+        .triangle-svg {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .sorting-activity {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .sorting-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .sortable-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: move;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .sortable-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .sortable-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .drop-zone {
+            min-height: 150px;
+            background: white;
+            border: 3px dashed #999;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone h4 {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #667eea;
+            background: #f0f4ff;
+            border-style: solid;
+        }
+
+        .drop-zone.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .drop-zone.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .quiz-container {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+
+        .quiz-container h4 {
+            color: #4a148c;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: white;
+            padding: 18px 20px;
+            margin: 12px 0;
+            border-radius: 12px;
+            border: 3px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.05em;
+        }
+
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateX(5px);
+        }
+
+        .quiz-option.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .quiz-option.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .feedback {
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 12px;
+            display: none;
+            font-size: 1.05em;
+            line-height: 1.7;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback.correct {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 3px solid #4caf50;
+        }
+
+        .feedback.wrong {
+            background: #ffebee;
+            color: #c62828;
+            border: 3px solid #f44336;
+        }
+
+        .structure-pyramid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 40px 0;
+            gap: 8px;
+        }
+
+        .pyramid-level {
+            padding: 25px 40px;
+            text-align: center;
+            color: white;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .pyramid-level:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .pyramid-level h4 {
+            color: white;
+            font-size: 1.4em;
+            margin-bottom: 8px;
+        }
+
+        .level-1 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            width: 95%;
+        }
+
+        .level-2 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            width: 75%;
+        }
+
+        .level-3 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            width: 55%;
+        }
+
+        .concept-hierarchy {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 2px solid #e0e0e0;
+        }
+
+        .hierarchy-level {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .hierarchy-level:hover {
+            transform: translateX(10px);
+        }
+
+        .macro-level {
+            background: linear-gradient(90deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+            padding: 25px;
+        }
+
+        .meso-level {
+            background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+            padding: 25px;
+            margin-left: 40px;
+        }
+
+        .micro-level {
+            background: linear-gradient(90deg, #45b7d1 0%, #2980b9 100%);
+            color: white;
+            padding: 25px;
+            margin-left: 80px;
+        }
+
+        .process-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .process-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .process-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .process-card .number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .process-card h4 {
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        .process-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .interactive-diagram {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .diagram-3d {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .dimension-box {
+            padding: 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dimension-box:hover {
+            transform: scale(1.05);
+        }
+
+        .two-d {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .three-d {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #ffc107 0%, #ff9800 100%);
+            padding: 3px 10px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .note strong {
+            color: #1565c0;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .warning strong {
+            color: #e65100;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+
+        .success-box strong {
+            color: #2e7d32;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            text-align: left;
+            font-size: 1.1em;
+        }
+
+        td {
+            padding: 18px;
+            border-bottom: 1px solid #e0e0e0;
+            background: white;
+        }
+
+        tr:hover td {
+            background: #f8f9ff;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            h2 {
+                font-size: 1.6em;
+            }
+            
+            .section {
+                padding: 25px;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-3d {
+                grid-template-columns: 1fr;
+            }
+
+            .process-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .sorting-items {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>개념 기반 수학 교육과정</h1>
+            <p class="subtitle">깊이 있는 이해를 위한 3차원 학습 모델</p>
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span>학습 진행률</span>
+                    <span id="sectionCounter">0/5 섹션 완료</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Section 1: 필요성 -->
+        <div class="section" style="animation-delay: 0.1s">
+            <h2>📚 1. 왜 개념 기반 교육이 필요한가?</h2>
+            
+            <div class="intro-text">
+                많은 학생들이 <strong>SOHCAHTOA</strong>와 같은 공식을 암기하여 답을 구할 수는 있지만, 
+                그것이 <span class="highlight">비(ratio)</span>나 <span class="highlight">닮음(similarity)</span>과 같은 
+                개념적 이해를 의미하지는 않습니다.
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-card traditional">
+                    <h4>❌ 전통적 접근</h4>
+                    <ul>
+                        <li>공식 암기</li>
+                        <li>절차적 문제 풀이</li>
+                        <li>정답 구하기에만 집중</li>
+                        <li>"어떻게" 푸는지만 안다</li>
+                        <li>새로운 상황에 적용 어려움</li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card conceptual">
+                    <h4>✅ 개념 기반 접근</h4>
+                    <ul>
+                        <li>개념적 이해</li>
+                        <li>수학적 추론</li>
+                        <li>연결성 파악</li>
+                        <li>"왜" 그런지 이해한다</li>
+                        <li>다양한 상황에 전이 가능</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="example-container">
+                <h4>💡 실제 교실 상황</h4>
+                <p><strong>학생:</strong> "선생님, sin 30°는 1/2라고 외웠어요. 그런데 왜 1/2인가요?"</p>
+                <p><strong>교사 A (전통적):</strong> "그냥 그렇게 정해진 거야. 외우면 돼."</p>
+                <p><strong>교사 B (개념 기반):</strong> "30°-60°-90° 직각삼각형을 그려보자. 빗변이 2일 때 높이가 1이 되는 이유를 함께 탐구해볼까?"</p>
+            </div>
+
+            <div class="quiz-container">
+                <h4>🎯 확인하기: 다음 중 개념적 이해를 보여주는 것은?</h4>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 1)">
+                    A. "sin, cos, tan 공식을 외우고 있다"
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 1)">
+                    B. "계산기로 삼각비 값을 구할 수 있다"
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, 1)">
+                    C. "닮은 직각삼각형에서 대응변의 비가 일정함을 설명할 수 있다"
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 1)">
+                    D. "삼각비 표를 읽을 수 있다"
+                </div>
+                <div class="feedback" id="feedback1"></div>
+            </div>
+
+            <div class="note">
+                <strong>💡 핵심:</strong> 개념 기반 교육과정은 사실과 알고리즘을 넘어 
+                <span class="highlight">개념적 수준</span>의 높은 지적 사고를 추구합니다.
+            </div>
+
+            <button class="btn" onclick="completeSection(1)">✓ 다음 섹션으로</button>
+        </div>
+
+        <!-- Section 2: 지식 구조 -->
+        <div class="section" style="animation-delay: 0.2s">
+            <h2>🏗️ 2. 지식 구조 (Structure of Knowledge)</h2>
+            
+            <div class="intro-text">
+                지식은 계층적 구조를 가지며, 각 수준은 서로 다른 깊이의 이해를 나타냅니다.
+            </div>
+
+            <div class="structure-pyramid">
+                <div class="pyramid-level level-3" onclick="showDetail('generalization')">
+                    <h4>일반화 & 원리</h4>
+                    <p>Generalizations & Principles</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">개념 간 연결, 정리(Theorems)</p>
+                </div>
+                
+                <div class="pyramid-level level-2" onclick="showDetail('concepts')">
+                    <h4>주제 & 개념</h4>
+                    <p>Topics & Concepts</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">메조/마이크로 개념</p>
+                </div>
+                
+                <div class="pyramid-level level-1" onclick="showDetail('facts')">
+                    <h4>사실</h4>
+                    <p>Facts</p>
+                    <p style="font-size: 0.9em; margin-top: 5px;">정의, 공식, 용어</p>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab-button active" onclick="switchTab(event, 'factsTab')">📌 사실적 수준</button>
+                <button class="tab-button" onclick="switchTab(event, 'conceptsTab')">📖 주제/개념 수준</button>
+                <button class="tab-button" onclick="switchTab(event, 'principlesTab')">🔗 일반화/원리 수준</button>
+            </div>
+
+            <div id="factsTab" class="tab-content active">
+                <h3>📌 사실적 수준 (The Factual Level)</h3>
+                <p><strong>특징:</strong> 지식 구조의 가장 낮은 수준, 단순 암기 지식</p>
+                
+                <div class="warning">
+                    <strong>⚠️ 주의:</strong> 사실은 특정 상황에 고정되어 있으며 <strong>전이 불가능</strong>합니다!
+                </div>
+
+                <div class="example-container">
+                    <h4>예시:</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li><strong>정의:</strong> "삼각형의 세 내각의 합은 180°이다"</li>
+                        <li><strong>공식:</strong> y = mx + c (일차함수의 공식)</li>
+                        <li><strong>공식:</strong> cos x = 인접변/빗변</li>
+                        <li><strong>용어:</strong> 오각형, 이등변삼각형, 평행사변형</li>
+                    </ul>
+                </div>
+
+                <table>
+                    <tr>
+                        <th>구분</th>
+                        <th>설명</th>
+                        <th>학습 방법</th>
+                    </tr>
+                    <tr>
+                        <td><strong>사실</strong></td>
+                        <td>암기 가능한 정보</td>
+                        <td>반복, 암송</td>
+                    </tr>
+                    <tr>
+                        <td><strong>역할</strong></td>
+                        <td>개념을 뒷받침하는 도구</td>
+                        <td>맥락 속에서 이해</td>
+                    </tr>
+                    <tr>
+                        <td><strong>한계</strong></td>
+                        <td>전이 불가능</td>
+                        <td>새로운 상황 적용 어려움</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="conceptsTab" class="tab-content">
+                <h3>📖 주제 및 개념적 수준</h3>
+                <p><strong>구조:</strong> 메조 개념(Topics) → 마이크로 개념(Micro Concepts)</p>
+
+                <div class="concept-hierarchy">
+                    <div class="hierarchy-level macro-level">
+                        <h4>🎯 메조 개념 (Meso Concept)</h4>
+                        <p style="font-size: 1.2em; margin-top: 10px;"><strong>삼각법 (Trigonometry)</strong></p>
+                    </div>
+                    
+                    <div class="hierarchy-level meso-level" style="margin-top: 15px;">
+                        <h4>🔹 마이크로 개념 1</h4>
+                        <p><strong>직각삼각형 (Right-angled Triangle)</strong></p>
+                    </div>
+                    
+                    <div class="hierarchy-level meso-level">
+                        <h4>🔹 마이크로 개념 2</h4>
+                        <p><strong>예각 (Acute Angle)</strong></p>
+                    </div>
+                    
+                    <div class="hierarchy-level meso-level">
+                        <h4>🔹 마이크로 개념 3</h4>
+                        <p><strong>비율 (Ratio)</strong></p>
+                    </div>
+                    
+                    <div class="hierarchy-level meso-level">
+                        <h4>🔹 마이크로 개념 4</h4>
+                        <p><strong>닮음 (Similar)</strong></p>
+                    </div>
+                </div>
+
+                <div class="example-container">
+                    <h4>다른 예시:</h4>
+                    <p><strong>함수 (Function)</strong> 메조 개념의 마이크로 개념들:</p>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>대응 (Correspondence)</li>
+                        <li>정의역 (Domain)</li>
+                        <li>치역 (Range)</li>
+                        <li>변화율 (Rate of Change)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="principlesTab" class="tab-content">
+                <h3>🔗 일반화 및 원리 수준</h3>
+                <p><strong>핵심:</strong> 둘 이상의 개념을 연결하는 개념적 이해의 진술</p>
+
+                <div class="success-box">
+                    <strong>💡 정리 vs 공식:</strong><br>
+                    <strong>공식 (Formula):</strong> 수학적 기호로 관계를 보여주는 <u>사실</u><br>
+                    <strong>정리 (Theorem):</strong> 증명된 개념적 이해의 진술 (<u>원리</u>)
+                </div>
+
+                <table>
+                    <tr>
+                        <th style="width: 30%;">구분</th>
+                        <th>내용</th>
+                    </tr>
+                    <tr>
+                        <td><strong>공식 (사실)</strong></td>
+                        <td>a² + b² = c²</td>
+                    </tr>
+                    <tr>
+                        <td><strong>정리 (원리)</strong></td>
+                        <td>"직각삼각형에서 빗변에 그린 정사각형의 넓이는 다른 두 변에 그린 정사각형 넓이의 합과 같다"</td>
+                    </tr>
+                </table>
+
+                <div class="math-demo">
+                    <h4 style="text-align: center; color: #667eea;">피타고라스 정리 시각화</h4>
+                    <svg class="triangle-svg" viewBox="0 0 400 300">
+                        <!-- Right triangle -->
+                        <polygon points="50,250 50,100 250,250" fill="#e3f2fd" stroke="#2196f3" stroke-width="3"/>
+                        
+                        <!-- Square on side a -->
+                        <rect x="50" y="40" width="60" height="60" fill="#ffcdd2" stroke="#f44336" stroke-width="2" opacity="0.7"/>
+                        <text x="80" y="75" text-anchor="middle" fill="#c62828" font-weight="bold">a²</text>
+                        
+                        <!-- Square on side b -->
+                        <rect x="250" y="190" width="80" height="80" fill="#c8e6c9" stroke="#4caf50" stroke-width="2" opacity="0.7"/>
+                        <text x="290" y="235" text-anchor="middle" fill="#2e7d32" font-weight="bold">b²</text>
+                        
+                        <!-- Square on hypotenuse c -->
+                        <g transform="rotate(-36.87 150 175)">
+                            <rect x="110" y="135" width="103" height="103" fill="#fff9c4" stroke="#ffc107" stroke-width="2" opacity="0.7"/>
+                            <text x="161" y="191" text-anchor="middle" fill="#f57c00" font-weight="bold">c²</text>
+                        </g>
+                        
+                        <!-- Labels -->
+                        <text x="30" y="175" fill="#2196f3" font-size="18" font-weight="bold">a</text>
+                        <text x="150" y="270" fill="#4caf50" font-size="18" font-weight="bold">b</text>
+                        <text x="150" y="165" fill="#ffc107" font-size="18" font-weight="bold">c</text>
+                    </svg>
+                    <p style="text-align: center; font-size: 1.1em; color: #666; margin-top: 15px;">
+                        <strong>개념적 이해:</strong> 빗변의 정사각형(노란색) = 두 변의 정사각형(빨강 + 초록)
+                    </p>
+                </div>
+
+                <div class="example-container">
+                    <h4>다른 원리/일반화 예시:</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>"닮은 도형에서 대응하는 변의 비는 일정하다" (닮음의 원리)</li>
+                        <li>"함수의 미분계수는 그 점에서의 접선의 기울기를 나타낸다" (미분의 기하학적 의미)</li>
+                        <li>"확률의 합은 1이다" (확률의 기본 원리)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeSection(2)">✓ 다음 섹션으로</button>
+        </div>
+
+        <!-- Section 3: 과정 구조 -->
+        <div class="section" style="animation-delay: 0.3s">
+            <h2>⚙️ 3. 과정 구조 (Structure of Process)</h2>
+            
+            <div class="intro-text">
+                과정 구조는 수학 학습에 필요한 복잡한 수행 능력을 다루며, 
+                <strong>전략, 기술, 알고리즘</strong>으로 구성됩니다.
+            </div>
+
+            <h3>🎯 6가지 핵심 수학적 과정</h3>
+            
+            <div class="process-cards">
+                <div class="process-card">
+                    <div class="number">1</div>
+                    <h4>문제 해결</h4>
+                    <p><strong>Problem Solving</strong></p>
+                    <p style="margin-top: 10px;">수학의 근본적인 구성 요소이며, 주어진 문제 상황을 분석하고 해결 방안을 찾는 능력</p>
+                </div>
+                
+                <div class="process-card">
+                    <div class="number">2</div>
+                    <h4>추론 및 증명</h4>
+                    <p><strong>Reasoning and Proof</strong></p>
+                    <p style="margin-top: 10px;">일반화를 만들고 수학적 주장에 대한 정당성을 제공하는 능력</p>
+                </div>
+                
+                <div class="process-card">
+                    <div class="number">3</div>
+                    <h4>의사소통</h4>
+                    <p><strong>Communicating</strong></p>
+                    <p style="margin-top: 10px;">수학적 아이디어와 단계를 설명하고 토론하는 능력</p>
+                </div>
+                
+                <div class="process-card">
+                    <div class="number">4</div>
+                    <h4>연결 만들기</h4>
+                    <p><strong>Making Connections</strong></p>
+                    <p style="margin-top: 10px;">사실들 간의 관계, 기호와 절차 간의 연결, 현실 세계와의 연결을 파악하는 능력</p>
+                </div>
+                
+                <div class="process-card">
+                    <div class="number">5</div>
+                    <h4>표현 만들기</h4>
+                    <p><strong>Creating Representations</strong></p>
+                    <p style="margin-top: 10px;">그래프, 표, 기하학적 도형 등으로 수학적 아이디어를 표현하는 능력</p>
+                </div>
+                
+                <div class="process-card">
+                    <div class="number">6</div>
+                    <h4>탐구하기</h4>
+                    <p><strong>Investigating</strong></p>
+                    <p style="margin-top: 10px;">익숙하지 않은 수학적 상황을 탐색하고 다양한 접근 방식을 시도하는 능력</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">🎮 활동: 과정 요소 분류하기</h3>
+            
+            <div class="sorting-activity">
+                <p style="font-size: 1.1em; margin-bottom: 20px; text-align: center;">
+                    각 카드를 알맞은 카테고리로 드래그하세요!
+                </p>
+                
+                <div class="sorting-items" id="sortableItems">
+                    <div class="sortable-item" draggable="true" data-category="algorithm">
+                        PEMDAS/BODMAS<br><small>(연산 순서)</small>
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="skill">
+                        좌표평면에 점 찍기
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="strategy">
+                        문제 조건 분석 후<br>해결 계획 세우기
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="algorithm">
+                        SOHCAHTOA<br>(삼각비 공식)
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="skill">
+                        그래프 그리기
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="strategy">
+                        패턴 찾고<br>일반화하기
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="algorithm">
+                        십자 곱셈법
+                    </div>
+                    <div class="sortable-item" draggable="true" data-category="skill">
+                        계산기 사용하기
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+                    <div class="drop-zone" data-category="algorithm" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>📐 알고리즘</h4>
+                        <p style="color: #666; font-size: 0.95em;">지정된 결과를 산출하는<br>계산 규칙의 집합</p>
+                    </div>
+
+                    <div class="drop-zone" data-category="skill" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>🔧 기술</h4>
+                        <p style="color: #666; font-size: 0.95em;">전략에 내장된<br>작은 작동이나 행위</p>
+                    </div>
+
+                    <div class="drop-zone" data-category="strategy" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <h4>🎯 전략</h4>
+                        <p style="color: #666; font-size: 0.95em;">체계적이고 조직적인<br>학습 방법</p>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="checkSorting()" style="margin-top: 20px;">정답 확인</button>
+                <div class="feedback" id="sortingFeedback"></div>
+            </div>
+
+            <div class="note">
+                <strong>💡 중요:</strong> 알고리즘 암기는 개념적 이해를 자동으로 의미하지 않습니다. 
+                알고리즘은 개념 이해를 지원하는 <strong>도구</strong>일 뿐입니다.
+            </div>
+
+            <button class="btn" onclick="completeSection(3)">✓ 다음 섹션으로</button>
+        </div>
+
+        <!-- Section 4: 개념의 분류 -->
+        <div class="section" style="animation-delay: 0.4s">
+            <h2>🔺 4. 개념의 분류: 매크로, 메조, 마이크로</h2>
+            
+            <div class="intro-text">
+                수학은 본질적으로 개념적 관계의 언어이며, 
+                개념들은 <strong>폭(breadth)</strong>과 <strong>깊이(depth)</strong>에 따라 분류됩니다.
+            </div>
+
+            <div class="interactive-diagram">
+                <h3>개념의 계층 구조</h3>
+                
+                <div style="margin: 40px 0;">
+                    <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%); padding: 30px; border-radius: 15px; color: white; margin: 15px 0; cursor: pointer; transition: all 0.3s;" onclick="showConceptDetail('macro')">
+                        <h4 style="color: white; font-size: 1.5em;">🌍 매크로 개념 (Macro Concepts)</h4>
+                        <p style="font-size: 1.1em; margin-top: 10px;">가장 광범위한 지식, 이해의 <strong>폭(breadth)</strong> 제공</p>
+                        <p style="font-size: 1em; margin-top: 8px;">예: 기하학, 대수학, 미적분학, 통계학</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); padding: 30px; border-radius: 15px; color: white; margin: 15px 40px; cursor: pointer; transition: all 0.3s;" onclick="showConceptDetail('meso')">
+                        <h4 style="color: white; font-size: 1.4em;">📚 메조 개념 (Meso Concepts)</h4>
+                        <p style="font-size: 1.1em; margin-top: 10px;">매크로 개념을 세분화한 주제</p>
+                        <p style="font-size: 1em; margin-top: 8px;">예: 삼각법, 벡터, 함수, 극한</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #45b7d1 0%, #2980b9 100%); padding: 30px; border-radius: 15px; color: white; margin: 15px 80px; cursor: pointer; transition: all 0.3s;" onclick="showConceptDetail('micro')">
+                        <h4 style="color: white; font-size: 1.3em;">🔬 마이크로 개념 (Micro Concepts)</h4>
+                        <p style="font-size: 1.1em; margin-top: 10px;">이해의 <strong>깊이(depth)</strong> 제공</p>
+                        <p style="font-size: 1em; margin-top: 8px;">예: 비율, 각도, 닮음, 연속성</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab-button active" onclick="switchTab(event, 'macroTab')">🌍 매크로</button>
+                <button class="tab-button" onclick="switchTab(event, 'mesoTab')">📚 메조</button>
+                <button class="tab-button" onclick="switchTab(event, 'microTab')">🔬 마이크로</button>
+            </div>
+
+            <div id="macroTab" class="tab-content active">
+                <h3>🌍 매크로 개념 (Macro Concepts)</h3>
+                
+                <div class="example-container">
+                    <h4>특징:</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>수학의 가장 큰 영역/분야</li>
+                        <li>광범위한 지식을 포괄</li>
+                        <li>이해의 <span class="highlight">폭(breadth)</span>을 제공</li>
+                        <li>여러 메조 개념으로 구성</li>
+                    </ul>
+                </div>
+
+                <table>
+                    <tr>
+                        <th>매크로 개념</th>
+                        <th>설명</th>
+                    </tr>
+                    <tr>
+                        <td><strong>기하학 (Geometry)</strong></td>
+                        <td>도형, 공간, 측정에 관한 수학</td>
+                    </tr>
+                    <tr>
+                        <td><strong>대수학 (Algebra)</strong></td>
+                        <td>기호와 연산, 방정식에 관한 수학</td>
+                    </tr>
+                    <tr>
+                        <td><strong>미적분학 (Calculus)</strong></td>
+                        <td>변화와 축적에 관한 수학</td>
+                    </tr>
+                    <tr>
+                        <td><strong>통계학 (Statistics)</strong></td>
+                        <td>데이터 분석과 확률에 관한 수학</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="mesoTab" class="tab-content">
+                <h3>📚 메조 개념 (Meso Concepts)</h3>
+                
+                <div class="example-container">
+                    <h4>특징:</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>매크로 개념을 세분화한 주제</li>
+                        <li>교육과정의 단원 수준</li>
+                        <li>여러 마이크로 개념으로 구성</li>
+                        <li>학습의 중심 주제</li>
+                    </ul>
+                </div>
+
+                <table>
+                    <tr>
+                        <th>매크로 개념</th>
+                        <th>메조 개념 예시</th>
+                    </tr>
+                    <tr>
+                        <td><strong>기하학</strong></td>
+                        <td>삼각법, 도형의 성질, 변환, 측정</td>
+                    </tr>
+                    <tr>
+                        <td><strong>대수학</strong></td>
+                        <td>방정식, 함수, 수열, 행렬</td>
+                    </tr>
+                    <tr>
+                        <td><strong>미적분학</strong></td>
+                        <td>극한, 미분, 적분, 급수</td>
+                    </tr>
+                    <tr>
+                        <td><strong>통계학</strong></td>
+                        <td>확률, 분포, 추론, 회귀분석</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="microTab" class="tab-content">
+                <h3>🔬 마이크로 개념 (Micro Concepts)</h3>
+                
+                <div class="example-container">
+                    <h4>특징:</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>메조 개념을 뒷받침하는 세부 개념</li>
+                        <li>이해의 <span class="highlight">깊이(depth)</span>를 제공</li>
+                        <li>다른 주제에서도 재사용 가능</li>
+                        <li>개념적 이해의 핵심 요소</li>
+                    </ul>
+                </div>
+
+                <div class="example-container">
+                    <h4>예시: 삼각법(메조)의 마이크로 개념들</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; text-align: center;">
+                            <strong>직각삼각형</strong><br>
+                            <small>(Right-angled Triangle)</small>
+                        </div>
+                        <div style="background: #f3e5f5; padding: 15px; border-radius: 10px; text-align: center;">
+                            <strong>예각</strong><br>
+                            <small>(Acute Angle)</small>
+                        </div>
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px; text-align: center;">
+                            <strong>비율</strong><br>
+                            <small>(Ratio)</small>
+                        </div>
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 10px; text-align: center;">
+                            <strong>닮음</strong><br>
+                            <small>(Similar)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="note">
+                    <strong>💡 중요:</strong> 마이크로 개념은 여러 메조 개념에서 공통으로 사용됩니다. 
+                    예를 들어 "비율"은 삼각법, 확률, 통계 등 다양한 영역에서 핵심 개념입니다.
+                </div>
+            </div>
+
+            <button class="btn" onclick="completeSection(4)">✓ 다음 섹션으로</button>
+        </div>
+
+        <!-- Section 5: 구조의 결합 -->
+        <div class="section" style="animation-delay: 0.5s">
+            <h2>💫 5. 지식 구조 + 과정 구조 = 시너지!</h2>
+            
+            <div class="intro-text">
+                깊은 개념적 이해를 위해서는 <span class="highlight">지식 구조</span>(내용/사실)와 
+                <span class="highlight">과정 구조</span>(전략/기술) 간의 상호 작용, 즉 <strong>시너지</strong>가 필수적입니다.
+            </div>
+
+            <div class="diagram-3d">
+                <div class="dimension-box two-d">
+                    <h3 style="color: #d32f2f;">❌ 2차원 모델</h3>
+                    <h4 style="margin-top: 20px;">전통적 교육</h4>
+                    <ul style="text-align: left; margin: 20px; line-height: 2;">
+                        <li>지식: 사실만 암기</li>
+                        <li>과정: 기술만 연습</li>
+                        <li>결과: 얕은 이해</li>
+                        <li>한계: 전이 불가능</li>
+                    </ul>
+                </div>
+                
+                <div class="dimension-box three-d">
+                    <h3 style="color: #1565c0;">✅ 3차원 모델</h3>
+                    <h4 style="margin-top: 20px;">개념 기반 교육</h4>
+                    <ul style="text-align: left; margin: 20px; line-height: 2;">
+                        <li>지식 + 개념</li>
+                        <li>과정 + 이해</li>
+                        <li>결과: 깊은 이해</li>
+                        <li>강점: 전이 가능</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table style="margin-top: 30px;">
+                <tr>
+                    <th>구분</th>
+                    <th>전통적 2차원 모델</th>
+                    <th>개념 기반 3차원 모델</th>
+                </tr>
+                <tr>
+                    <td><strong>초점</strong></td>
+                    <td>사실 + 기술</td>
+                    <td>사실 + 기술 + <span class="highlight">개념</span></td>
+                </tr>
+                <tr>
+                    <td><strong>학습 목표</strong></td>
+                    <td>정보 습득</td>
+                    <td>깊은 이해와 전이</td>
+                </tr>
+                <tr>
+                    <td><strong>사고 수준</strong></td>
+                    <td>암기, 적용</td>
+                    <td>분석, 종합, 평가, 창조</td>
+                </tr>
+                <tr>
+                    <td><strong>평가 방식</strong></td>
+                    <td>계산 정확도</td>
+                    <td>개념적 이해 + 적용 능력</td>
+                </tr>
+                <tr>
+                    <td><strong>학습 결과</strong></td>
+                    <td>특정 문제 풀이</td>
+                    <td>다양한 상황 적용</td>
+                </tr>
+            </table>
+
+            <h3 style="margin-top: 40px;">💡 구체적 사례: 피타고라스 정리</h3>
+            
+            <div class="comparison-grid" style="margin-top: 25px;">
+                <div class="comparison-card traditional">
+                    <h4>2차원 접근</h4>
+                    <div style="margin-top: 20px; line-height: 2;">
+                        <p><strong>지식:</strong></p>
+                        <p>• a² + b² = c² 공식 암기</p>
+                        
+                        <p style="margin-top: 15px;"><strong>과정:</strong></p>
+                        <p>• 공식에 숫자 대입</p>
+                        <p>• 계산하여 답 구하기</p>
+                        
+                        <p style="margin-top: 15px;"><strong>결과:</strong></p>
+                        <p>• 특정 문제만 풀 수 있음</p>
+                        <p>• "왜?"에 답 못함</p>
+                    </div>
+                </div>
+                
+                <div class="comparison-card conceptual">
+                    <h4>3차원 접근</h4>
+                    <div style="margin-top: 20px; line-height: 2;">
+                        <p><strong>지식 + 개념:</strong></p>
+                        <p>• 공식 + 기하학적 의미 이해</p>
+                        <p>• 넓이와 길이의 관계</p>
+                        
+                        <p style="margin-top: 15px;"><strong>과정 + 이해:</strong></p>
+                        <p>• 다양한 방법으로 증명</p>
+                        <p>• 실생활 적용 탐구</p>
+                        
+                        <p style="margin-top: 15px;"><strong>결과:</strong></p>
+                        <p>• 다양한 상황 적용 가능</p>
+                        <p>• 개념 간 연결 이해</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box" style="margin-top: 30px;">
+                <h4>🌟 시너지의 핵심</h4>
+                <p style="font-size: 1.1em; line-height: 1.8; margin-top: 10px;">
+                    개념적 사고는 사실을 <strong>도구</strong>로 사용하여 
+                    <span class="highlight">패턴</span>, 
+                    <span class="highlight">연결</span>, 
+                    <span class="highlight">전이 가능한 깊은 이해</span>를 만듭니다!
+                </p>
+            </div>
+
+            <div class="quiz-container" style="margin-top: 30px;">
+                <h4>🎯 최종 확인: 개념 기반 교육의 핵심은?</h4>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 'final')">
+                    A. 더 많은 공식을 암기하게 하는 것
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 'final')">
+                    B. 계산 속도를 빠르게 하는 것
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, 'final')">
+                    C. 개념 간 연결을 만들어 전이 가능한 이해를 구축하는 것
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false, 'final')">
+                    D. 더 어려운 문제를 푸는 것
+                </div>
+                <div class="feedback" id="feedbackfinal"></div>
+            </div>
+
+            <button class="btn" onclick="completeSection(5)">✓ 학습 완료!</button>
+        </div>
+
+        <!-- 요약 섹션 -->
+        <div class="section" style="animation-delay: 0.6s; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h2 style="color: white; border-color: white;">🎓 핵심 요약</h2>
+            
+            <div style="font-size: 1.2em; line-height: 2; margin-top: 30px;">
+                <p>✅ 개념 기반 교육은 <strong>암기를 넘어</strong> 깊은 이해를 추구합니다</p>
+                <p>✅ <strong>지식 구조:</strong> 사실 → 주제/개념 → 일반화/원리의 3단계</p>
+                <p>✅ <strong>과정 구조:</strong> 6가지 수학적 과정 (문제해결, 추론, 의사소통, 연결, 표현, 탐구)</p>
+                <p>✅ <strong>개념 계층:</strong> 매크로 → 메조 → 마이크로 (폭과 깊이)</p>
+                <p>✅ <strong>시너지:</strong> 지식 + 과정 = 전이 가능한 깊은 이해</p>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.2); padding: 30px; border-radius: 15px; margin-top: 30px; text-align: center;">
+                <h3 style="color: white; font-size: 2em;">학습 완료율</h3>
+                <p style="font-size: 3em; margin: 20px 0; font-weight: bold;" id="finalCompletion">0%</p>
+                <button class="btn btn-success" onclick="resetProgress()">🔄 처음부터 다시 보기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="completionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3>🎉 축하합니다!</h3>
+            <p style="font-size: 1.2em; margin: 20px 0; line-height: 1.8;">
+                개념 기반 수학 교육과정의 모든 내용을 학습하셨습니다!<br>
+                이제 교실에서 <strong>3차원 모델</strong>을 적용해보세요.
+            </p>
+            <button class="btn" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        let completedSections = new Set();
+        const totalSections = 5;
+        let draggedElement = null;
+
+        // Progress tracking
+        function completeSection(sectionNum) {
+            completedSections.add(sectionNum);
+            updateProgress();
+            
+            // Scroll to next section
+            const sections = document.querySelectorAll('.section');
+            if (sectionNum < totalSections && sections[sectionNum]) {
+                sections[sectionNum].scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (sectionNum === totalSections) {
+                showCompletionModal();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (completedSections.size / totalSections) * 100;
+            const progressBar = document.getElementById('progressBar');
+            const sectionCounter = document.getElementById('sectionCounter');
+            const finalCompletion = document.getElementById('finalCompletion');
+            
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
+            sectionCounter.textContent = `${completedSections.size}/${totalSections} 섹션 완료`;
+            if (finalCompletion) {
+                finalCompletion.textContent = Math.round(progress) + '%';
+            }
+        }
+
+        function resetProgress() {
+            if (confirm('진행 상황을 초기화하고 처음부터 다시 시작하시겠습니까?')) {
+                completedSections.clear();
+                updateProgress();
+                
+                // Reset all quiz options
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'wrong');
+                    opt.style.pointerEvents = 'auto';
+                });
+                
+                // Hide all feedbacks
+                document.querySelectorAll('.feedback').forEach(fb => {
+                    fb.classList.remove('show');
+                });
+                
+                // Reset sorting activity
+                const itemsContainer = document.getElementById('sortableItems');
+                const items = document.querySelectorAll('.sortable-item');
+                items.forEach(item => {
+                    itemsContainer.appendChild(item);
+                    item.style.border = '3px solid transparent';
+                });
+                
+                document.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.classList.remove('correct', 'incorrect');
+                });
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Tab switching
+        function switchTab(event, tabId) {
+            // Remove active from all buttons and contents
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active to clicked button and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Quiz functionality
+        function checkAnswer(element, isCorrect, quizId) {
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.classList.remove('correct', 'wrong');
+            });
+
+            const feedback = document.getElementById('feedback' + quizId);
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedback.className = 'feedback correct show';
+                if (quizId === 1) {
+                    feedback.innerHTML = '✅ 정답입니다! 개념적 이해는 단순히 계산하는 것을 넘어, 수학적 개념의 "왜"를 설명할 수 있는 능력입니다. 닮은 직각삼각형에서 대응변의 비가 일정하다는 것을 이해하면, 삼각비가 각도에만 의존한다는 핵심 개념을 파악한 것입니다.';
+                } else if (quizId === 'final') {
+                    feedback.innerHTML = '🎉 완벽합니다! 개념 기반 교육의 핵심은 개념들 사이의 <strong>연결</strong>을 만들고, 그 이해를 새로운 상황에 <strong>전이(transfer)</strong>할 수 있는 능력을 기르는 것입니다. 이것이 바로 2차원을 넘어 3차원 모델로 나아가는 이유입니다!';
+                }
+            } else {
+                element.classList.add('wrong');
+                feedback.className = 'feedback wrong show';
+                if (quizId === 1) {
+                    feedback.innerHTML = '❌ 이것은 절차적 지식이나 기술 수준입니다. 개념적 이해는 "왜 그런지"를 설명할 수 있어야 합니다. 다시 생각해보세요!';
+                } else if (quizId === 'final') {
+                    feedback.innerHTML = '❌ 이것은 전통적인 접근 방식의 특징입니다. 개념 기반 교육은 단순한 양적 증가가 아니라 <strong>질적인 이해의 깊이</strong>를 추구합니다.';
+                }
+            }
+        }
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const draggables = document.querySelectorAll('.sortable-item');
+            
+            draggables.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    setTimeout(() => {
+                        this.classList.add('dragging');
+                    }, 0);
+                });
+
+                item.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                });
+            });
+        });
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            
+            if (draggedElement) {
+                ev.currentTarget.appendChild(draggedElement);
+            }
+        }
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragleave', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('drag-over');
+                }
+            });
+        });
+
+        function checkSorting() {
+            const zones = document.querySelectorAll('.drop-zone');
+            let correct = 0;
+            let total = 0;
+            let allCorrect = true;
+
+            zones.forEach(zone => {
+                const category = zone.dataset.category;
+                const items = zone.querySelectorAll('.sortable-item');
+                
+                items.forEach(item => {
+                    total++;
+                    if (item.dataset.category === category) {
+                        correct++;
+                        item.style.border = '3px solid #4caf50';
+                        item.style.background = '#e8f5e9';
+                    } else {
+                        item.style.border = '3px solid #f44336';
+                        item.style.background = '#ffebee';
+                        allCorrect = false;
+                    }
+                });
+
+                if (allCorrect && items.length > 0) {
+                    zone.classList.add('correct');
+                } else if (items.length > 0) {
+                    zone.classList.add('incorrect');
+                }
+            });
+
+            const feedback = document.getElementById('sortingFeedback');
+            feedback.classList.add('show');
+            
+            if (allCorrect && total > 0) {
+                feedback.className = 'feedback correct show';
+                feedback.innerHTML = `🎉 완벽합니다! 모든 요소를 올바르게 분류했습니다!<br><br>
+                    <strong>📐 알고리즘:</strong> 계산의 정확한 순서와 규칙<br>
+                    <strong>🔧 기술:</strong> 구체적인 수학적 작업<br>
+                    <strong>🎯 전략:</strong> 문제 해결을 위한 체계적 접근`;
+            } else {
+                feedback.className = 'feedback wrong show';
+                feedback.innerHTML = `📊 ${total}개 중 ${correct}개를 맞췄습니다. 초록색 테두리가 정답, 빨간색이 오답입니다. 다시 도전해보세요!`;
+            }
+        }
+
+        // Modal functions
+        function showCompletionModal() {
+            document.getElementById('completionModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('completionModal').classList.remove('show');
+        }
+
+        // Detail functions
+        function showDetail(type) {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Remove all active classes
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Activate corresponding tab
+            if (type === 'facts') {
+                tabButtons[0].classList.add('active');
+                document.getElementById('factsTab').classList.add('active');
+            } else if (type === 'concepts') {
+                tabButtons[1].classList.add('active');
+                document.getElementById('conceptsTab').classList.add('active');
+            } else if (type === 'generalization') {
+                tabButtons[2].classList.add('active');
+                document.getElementById('principlesTab').classList.add('active');
+            }
+        }
+
+        function showConceptDetail(type) {
+            const tabButtons = document.querySelectorAll('#section4 .tab-button');
+            const tabContents = document.querySelectorAll('#section4 .tab-content');
+            
+            // This would switch to the appropriate tab
+            // Implementation would be similar to showDetail
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Add section IDs for smoother navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach((section, index) => {
+                section.id = `section${index + 1}`;
+            });
+        });
+    </script>
+</body>
+</html>
