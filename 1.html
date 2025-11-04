@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연수 전 아이스브레이킹: AI vs Human</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter 폰트 사용 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc; /* Tailwind 'slate-50' */
+            /* 부드러운 그라데이션 배경 */
+            background-image: linear-gradient(135deg, #f5f3ff 0%, #f8fafc 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 코드 블록 스타일 */
+        pre {
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0; /* slate-200 */
+            padding: 1rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            overflow-x: auto;
+            font-family: 'monospace';
+        }
+        /* 버튼 트랜지션 */
+        .choice-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        /* 정답/오답 피드백 애니메이션 */
+        .feedback {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- 퀴즈 컨테이너 -->
+    <div id="quiz-container" class="w-full max-w-2xl mx-auto bg-white p-6 sm:p-8 md:p-10 rounded-xl shadow-2xl border border-slate-200">
+
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-indigo-700 mb-3">연수 전 아이스브레이킹</h1>
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6">🤖 AI vs Human 🧑‍🏫</h2>
+            <p class="text-lg text-slate-600 mb-8">
+                잠시 후 "AI 바이브 코딩" 연수가 시작됩니다.<br>
+                시작 전, AI와 사람이 만든 콘텐츠를 구별해 보세요!
+            </p>
+            <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 transition-all text-lg">
+                퀴즈 시작하기
+            </button>
+        </div>
+
+        <!-- 퀴즈 화면 -->
+        <div id="question-screen" class="hidden">
+            <div class="text-center mb-6">
+                <p class="text-sm font-semibold text-indigo-500" id="question-counter">Question 1 / 5</p>
+                <h2 class="text-2xl font-bold text-slate-800 mt-1">이 콘텐츠는 누가 만들었을까요?</h2>
+            </div>
+            
+            <!-- 콘텐츠 표시 영역 -->
+            <div id="question-content" class="bg-slate-50 border border-slate-200 p-6 rounded-lg mb-6 min-h-[150px] flex items-center justify-center">
+                <!-- 퀴즈 내용이 여기에 삽입됩니다. -->
+            </div>
+
+            <!-- 선택 버튼 -->
+            <div id="choice-buttons" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button onclick="makeGuess(true)" class="choice-btn w-full bg-blue-100 text-blue-800 border-2 border-blue-300 font-bold py-4 px-6 rounded-lg hover:bg-blue-200 hover:border-blue-400">
+                    🤖 AI가 만들었어요
+                </button>
+                <button onclick="makeGuess(false)" class="choice-btn w-full bg-green-100 text-green-800 border-2 border-green-300 font-bold py-4 px-6 rounded-lg hover:bg-green-200 hover:border-green-400">
+                    🧑‍🏫 사람이 만들었어요
+                </button>
+            </div>
+
+            <!-- 피드백 -->
+            <div id="feedback-area" class="hidden mt-6">
+                <div id="feedback-box" class="feedback p-5 rounded-lg border-2">
+                    <h3 id="feedback-title" class="text-xl font-bold mb-2"></h3>
+                    <p id="feedback-explanation" class="text-slate-700"></p>
+                </div>
+                <button onclick="nextQuestion()" class="w-full bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 transition-all text-lg mt-4">
+                    다음 문제
+                </button>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="result-screen" class="hidden text-center">
+            <h1 class="text-3xl font-bold text-indigo-700 mb-4">퀴즈 완료!</h1>
+            <p class="text-lg text-slate-600 mb-6">총 <span id="total-questions"></span>문제 중 <span id="total-score" class="font-bold text-2xl text-indigo-600"></span>문제를 맞혔습니다.</p>
+            <div id="result-message" class="text-xl font-semibold text-slate-800 mb-8"></div>
+            <p class="text-slate-500 mb-8">AI와 사람의 차이점을 발견하셨나요? <br>잠시 후 연수에서 AI 코딩의 세계를 더 깊이 탐험해 봅니다!</p>
+            <button onclick="restartQuiz()" class="w-full bg-slate-200 text-slate-800 font-semibold py-3 px-6 rounded-lg hover:bg-slate-300 transition-all text-lg">
+                다시 풀어보기
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // 퀴즈 데이터
+        const quizData = [
+            {
+                content: `<p class="text-lg text-center italic">"차가운 금속의 심장, 전선의 꿈,<br>논리의 바다에서, 생각이 피어나.<br>0과 1의 춤, 실리콘의 노래,<br>나는 존재한다, 코드 속에서."</p>`,
+                isAI: true,
+                explanation: "AI가 생성한 시입니다. AI는 종종 자신을 '코드', '논리', '0과 1' 등의 단어로 묘사하곤 합니다."
+            },
+            {
+                content: `<pre>function getGreeting(name) {
+  return "Hello, " + name
+}</pre>`,
+                isAI: false,
+                explanation: "사람이 작성한 코드입니다. (세미콜론이 빠졌네요!) AI는 문법적으로 완벽한 코드를 생성하는 경향이 있습니다."
+            },
+            {
+                content: `<p class="text-base">"메타인지는 '생각에 대한 생각'으로, 자신의 인지 과정을 인식하고, 모니터링하며, 조절하는 고차원적 사고 능력을 의미합니다. 이는 학습 전략의 계획, 실행, 평가에 핵심적인 역할을 합니다."</p>`,
+                isAI: true,
+                explanation: "AI가 생성한 정의입니다. 매우 교과서적이고 명확하게 핵심을 요약하는 특징이 있습니다."
+            },
+            {
+                content: `<p class="text-lg text-center">"계란 두 개 깨서 넣고, 소금 한 꼬집, 설탕은 맘대로. 대충 휘저어서 팬에 부으면 끝. 타지 않게 조심하세요!"</p>`,
+                isAI: false,
+                explanation: "사람이 작성한 레시피입니다. '맘대로', '대충' 같은 표현은 AI가 잘 사용하지 않는 인간적인 표현입니다."
+            },
+            {
+                content: `<pre>const getGreeting = (name) => {
+  return \`Hello, \${name}\`;
+};</pre>`,
+                isAI: true,
+                explanation: "AI가 생성한 코드입니다. 화살표 함수와 템플릿 리터럴을 사용한 간결하고 현대적인 스타일을 잘 따릅니다."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questions = []; // 퀴즈가 시작될 때 데이터를 섞어서 저장
+
+        // DOM 요소
+        const startScreen = document.getElementById('start-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const questionCounter = document.getElementById('question-counter');
+        const questionContent = document.getElementById('question-content');
+        const choiceButtons = document.getElementById('choice-buttons');
+        const feedbackArea = document.getElementById('feedback-area');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+
+        // 퀴즈 시작
+        function startQuiz() {
+            // 퀴즈 데이터를 섞습니다 (Fisher-Yates shuffle)
+            questions = [...quizData];
+            for (let i = questions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questions[i], questions[j]] = [questions[j], questions[i]];
+            }
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            questionScreen.classList.remove('hidden');
+            displayQuestion();
+        }
+
+        // 퀴즈 재시작
+        function restartQuiz() {
+            startQuiz(); // 설정 초기화 및 퀴즈 재시작
+        }
+
+        // 문제 표시
+        function displayQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showResults();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            questionCounter.innerText = `Question ${currentQuestionIndex + 1} / ${questions.length}`;
+            questionContent.innerHTML = question.content;
+
+            // 피드백 영역 숨기기 및 버튼 활성화
+            feedbackArea.classList.add('hidden');
+            choiceButtons.classList.remove('hidden');
+            document.querySelectorAll('#choice-buttons button').forEach(btn => btn.disabled = false);
+        }
+
+        // 답안 제출
+        function makeGuess(userGuess) {
+            const question = questions[currentQuestionIndex];
+            const isCorrect = userGuess === question.isAI;
+
+            if (isCorrect) {
+                score++;
+                feedbackTitle.innerText = "🎉 정답입니다!";
+                feedbackBox.className = "feedback p-5 rounded-lg border-2 bg-green-50 border-green-300 text-green-800";
+            } else {
+                feedbackTitle.innerText = "🤔 아쉽네요! 틀렸습니다.";
+                feedbackBox.className = "feedback p-5 rounded-lg border-2 bg-red-50 border-red-300 text-red-800";
+            }
+
+            feedbackExplanation.innerText = question.explanation;
+
+            // 버튼 비활성화 및 피드백 표시
+            choiceButtons.classList.add('hidden');
+            document.querySelectorAll('#choice-buttons button').forEach(btn => btn.disabled = true);
+            feedbackArea.classList.remove('hidden');
+        }
+
+        // 다음 문제로
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        // 결과 표시
+        function showResults() {
+            questionScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            document.getElementById('total-questions').innerText = questions.length;
+            document.getElementById('total-score').innerText = score;
+
+            let message = "";
+            if (score === questions.length) {
+                message = "완벽합니다! AI 전문가시네요! 🤩";
+            } else if (score >= questions.length * 0.7) {
+                message = "대단해요! AI와 사람을 잘 구분하시네요. 👍";
+            } else if (score >= questions.length * 0.4) {
+                message = "좋아요! 조금 헷갈리셨군요. 😅";
+            } else {
+                message = "AI와 사람이 생각보다 비슷하죠? 🤖";
+            }
+            document.getElementById('result-message').innerText = message;
+        }
+
+    </script>
+
+</body>
+</html>
